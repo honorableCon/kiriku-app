@@ -28,9 +28,17 @@ export interface OpenRouterConfig {
     isEnabled: boolean;
 }
 
+export interface CloudflareAiConfig {
+    apiKey: string;
+    primaryModel: string;
+    fallbackModels: string[];
+    isEnabled: boolean;
+}
+
 export interface SystemSettings {
     key: string;
     openRouter: OpenRouterConfig;
+    cloudflareAi: CloudflareAiConfig;
     otherConfigs: Record<string, any>;
 }
 
