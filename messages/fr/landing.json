@@ -1,0 +1,61 @@
+{
+  "hero": {
+    "status": "Système_En_Ligne :: v1.0.0",
+    "title": {
+      "line1": "Identité",
+      "line2": "Intelligence",
+      "line3": "Protocole"
+    },
+    "description": "Infrastructure KYC avancée pour les fintechs ouest-africaines. Extraction OCR neuronale, détection de fraude et vérification biométrique via une passerelle API unifiée.",
+    "buttons": {
+      "primary": "Initialiser_Accès",
+      "secondary": "Lire_Documentation"
+    }
+  },
+  "stats": {
+    "accuracy": {
+      "label": "PRÉCISION_OCR",
+      "value": "99.2%"
+    },
+    "latency": {
+      "label": "LATENCE",
+      "value": "< 2000ms"
+    },
+    "regions": {
+      "label": "RÉGIONS",
+      "value": "8+"
+    },
+    "uptime": {
+      "label": "DISPONIBILITÉ",
+      "value": "99.99%"
+    }
+  },
+  "partners": {
+    "title": "Confiance_Des_Les_Du_Secteur"
+  },
+  "features": {
+    "title": "Capacités_Principales",
+    "subtitle": "Digital Identity Suite",
+    "description": "Conçu pour les défis spécifiques du marché africain.",
+    "models": {
+      "title": "Modèles_Locaux",
+      "description": "Réseaux neuronaux entraînés sur des milliers de documents UEMOA pour une précision inégalée sur les cartes d'identité et passeports locaux."
+    },
+    "fraud": {
+      "title": "Détection_Fraude",
+      "description": "Analyse automatisée de la falsification d'images, des photocopies et des vérifications de cohérence MRZ."
+    },
+    "sovereignty": {
+      "title": "Souveraineté_Données",
+      "description": "Infrastructure déployée localement ou conforme aux réglementations CDP. Vos données utilisateur restent sécurisées."
+    }
+  },
+  "cta": {
+    "title": "Prêt à Intégrer ?",
+    "description": "Obtenez vos clés API en 2 minutes. 100 extractions gratuites incluses.",
+    "buttons": {
+      "primary": "Créer_Compte",
+      "secondary": "Contacter_Ventes"
+    }
+  }
+}

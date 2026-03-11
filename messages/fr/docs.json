@@ -1,0 +1,92 @@
+{
+  "title": "Tout ce dont vous avez besoin pour bâtir avec Kiriku",
+  "subtitle": "Documentation complète de l'API d'extraction de documents intelligents",
+  "cta": "Commencer",
+  "quickStart": "Démarrage Rapide",
+  "apiReference": "Référence API",
+  "sdks": "SDKs & Outils",
+  "apiOverview": {
+    "title": "Aperçu de l'API",
+    "baseURL": "URL de base",
+    "baseURLValue": "https://api.kiriku.app/v1",
+    "authentication": "Authentification",
+    "authenticationDesc": "Toutes les requêtes API nécessitent un token JWT valide",
+    "response": "Format de réponse",
+    "responseDesc": "Toutes les réponses sont retournées au format JSON"
+  },
+  "auth": {
+    "title": "Authentification",
+    "desc": "Toutes les requêtes API sécurisées nécessitent un token JWT dans l'en-tête Authorization.",
+    "headerFormat": "# Format de l'en-tête Authorization\nAuthorization: Bearer <YOUR_JWT_TOKEN>\n\n# Obtenir votre token via l'endpoint d'authentification\ncurl -X POST https://api.kiriku.app/v1/auth/login \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"email\": \"votre@email.com\",\n    \"password\": \"votre_mot_de_passe\"\n  }'",
+    "validity": "Durée de validité",
+    "validityValue": "24 heures",
+    "refresh": "Rénovation",
+    "refreshValue": "Refresh token disponible"
+  },
+  "documents": {
+    "title": "Types de Documents Supportés",
+    "cniSenegal": "CNI SÉNÉGAL",
+    "cniSenegalDesc": "Carte d'identité nationale sénégalaise, recto et verso",
+    "passportSenegal": "PASSEPORT SÉNÉGAL",
+    "passportSenegalDesc": "Passeport biométrique sénégalais",
+    "permisCedeao": "PERMIS CONDUIRE CEDEAO",
+    "permisCedeaoDesc": "Permis de conduire CEDEAO (format uniformisé)",
+    "auto": "AUTO",
+    "autoDesc": "Détection automatique du type de document"
+  },
+  "quickStartGuide": {
+    "title": "Démarrage rapide",
+    "desc": "Extrayez des données d'un document d'identité en quelques secondes",
+    "multipart": "# Extraction rapide (multipart) - envoi des options en champs séparés (recommandé)\ncurl -X POST https://api.kiriku.app/v1/extract \\\n  -H \"Authorization: Bearer <TOKEN>\" \\\n  -F \"file=@/chemin/vers/cni_recto.jpg\" \\\n  -F \"documentType=cni-senegal\" \\\n  -F \"fraudCheck=true\" \\\n  -F \"returnConfidence=true\" \\\n  -F \"returnRawText=false\"",
+    "jsonVariant": "# Variante: envoi des options dans un seul champ JSON\ncurl -X POST https://api.kiriku.app/v1/extract \\\n  -H \"Authorization: Bearer <TOKEN>\" \\\n  -F \"file=@/chemin/vers/cni_recto.jpg\" \\\n  -F \"documentType=cni-senegal\" \\\n  -F \"options={\\\"fraudCheck\\\":true,\\\"returnConfidence\\\":true,\\\"returnRawText\\\":false}\"",
+    "javascript": "const formData = new FormData();\nformData.append('file', fileInput);\nformData.append('documentType', 'cni-senegal');\nformData.append('fraudCheck', 'true');\n\nconst response = await fetch(\n  'https://api.kiriku.app/v1/extract',\n  {\n    method: 'POST',\n    headers: {\n      'Authorization': `Bearer ${token}`\n    },\n    body: formData\n  }\n);\n\nconst result = await response.json();",
+    "python": "import requests\n\nurl = \"https://api.kiriku.app/v1/extract\"\nheaders = {\n    \"Authorization\": f\"Bearer {token}\"\n}\nfiles = {\n    \"file\": open(\"cni_recto.jpg\", \"rb\")\n}\ndata = {\n    \"documentType\": \"cni-senegal\",\n    \"fraudCheck\": \"true\",\n    \"returnConfidence\": \"true\"\n}\n\nresponse = requests.post(\n  url, headers=headers,\n  files=files, data=data\n)\nresult = response.json()"
+  },
+  "mobileScan": {
+    "title": "Scan Mobile (Mobile Handoff)",
+    "endpoints": [
+      "POST /mobile-handoff/session → { sessionId }",
+      "GET /mobile-handoff/session/:sessionId → { status, hasFile }",
+      "POST /mobile-handoff/upload/:sessionId (file)",
+      "GET /mobile-handoff/consume/:sessionId (récupération du fichier)"
+    ],
+    "example": "curl -X POST https://api.kiriku.app/v1/mobile-handoff/session\n  -H \"Authorization: Bearer <TOKEN>\""
+  },
+  "errors": {
+    "title": "Gestion des Erreurs",
+    "desc": "L'API retourne des codes HTTP standard et des messages d'erreur structurés.",
+    "structure": "# Structure des réponses d'erreur\n{\n  \"error\": {\n    \"code\": \"INVALID_DOCUMENT_TYPE\",\n    \"message\": \"Type de document non supporté\",\n    \"details\": {\n      \"provided\": \"passport-france\",\n      \"allowed\": [\"cni-senegal\", \"passeport-senegal\", \"permis-conduire-cedeao\", \"auto\"]\n    }\n  }\n}",
+    "400": {
+      "code": "400",
+      "desc": "Requête invalide"
+    },
+    "401": {
+      "code": "401",
+      "desc": "Non authentifié"
+    },
+    "403": {
+      "code": "403",
+      "desc": "Accès refusé"
+    },
+    "429": {
+      "code": "429",
+      "desc": "Trop de requêtes"
+    }
+  },
+  "schemas": {
+    "title": "Schémas Requête/Réponse",
+    "requestDesc": "Champs disponibles pour l'endpoint /extract",
+    "file": "File",
+    "fileDesc": "Image du document (JPG, PNG, PDF)",
+    "documentType": "documentType",
+    "documentTypeDesc": "Identifiant du type de document",
+    "fraudCheck": "fraudCheck",
+    "fraudCheckDesc": "Activer la détection de fraude",
+    "returnConfidence": "returnConfidence",
+    "returnConfidenceDesc": "Inclure les scores de confiance",
+    "returnRawText": "returnRawText",
+    "returnRawTextDesc": "Inclure le texte OCR brut",
+    "options": "options",
+    "optionsDesc": "Objet de configuration avancée"
+  }
+}

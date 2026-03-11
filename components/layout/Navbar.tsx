@@ -1,22 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { MoveRight, Menu, X, ArrowRight } from "lucide-react";
+import { MoveRight, Menu, X, ArrowRight, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useLocale, useTranslations } from 'next-intl';
 
 const navigation = [
     { name: "FEATURES", href: "/#features", label: "FEATURES" },
     { name: "PRICING", href: "/pricing", label: "PRICING" },
     { name: "DOCS", href: "/docs", label: "DOCUMENTATION" },
-    // { name: "BLOG", href: "/blog", label: "BLOG" },
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+    locale?: string;
+}
+
+export default function Navbar({ locale }: NavbarProps) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [showLangSwitch, setShowLangSwitch] = useState(false);
     const pathname = usePathname();
+    const router = useRouter();
+    const currentLocale = useLocale();
+    const t = useTranslations('nav');
+
+    const switchLocale = (newLocale: string) => {
+        const path = pathname.replace(`/${currentLocale}`, `/${newLocale}`);
+        router.push(path || `/${newLocale}`);
+    };
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -60,7 +73,7 @@ export default function Navbar() {
                     {navigation.map((item) => (
                         <Link 
                             key={item.name} 
-                            href={item.href} 
+                            href={`/${currentLocale}${item.href}`} 
                             className="text-[10px] font-black text-foreground/50 hover:text-primary transition-colors font-mono uppercase tracking-wider hover:border-b hover:border-primary/50 pb-1"
                         >
                             {item.name}
@@ -68,11 +81,41 @@ export default function Navbar() {
                     ))}
                 </div>
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-3 items-center">
-                    <Link href="/login" className="text-xs font-black text-foreground/60 hover:text-primary transition-colors px-4 font-mono uppercase tracking-wider">
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowLangSwitch(!showLangSwitch)}
+                            className="tech-border bg-black/40 border-border/60 p-2 text-foreground/60 hover:text-primary transition-colors"
+                        >
+                            <Globe className="w-4 h-4" />
+                        </button>
+                        {showLangSwitch && (
+                            <div className="absolute right-0 mt-2 w-32 tech-border bg-black/90 border-primary/20 shadow-xl">
+                                <button
+                                    onClick={() => { switchLocale('fr'); setShowLangSwitch(false); }}
+                                    className={cn(
+                                        "w-full text-left px-3 py-2 text-xs font-mono uppercase tracking-wider transition-colors",
+                                        currentLocale === 'fr' ? "text-primary bg-primary/10" : "text-foreground/60 hover:text-primary"
+                                    )}
+                                >
+                                    FR
+                                </button>
+                                <button
+                                    onClick={() => { switchLocale('en'); setShowLangSwitch(false); }}
+                                    className={cn(
+                                        "w-full text-left px-3 py-2 text-xs font-mono uppercase tracking-wider transition-colors",
+                                        currentLocale === 'en' ? "text-primary bg-primary/10" : "text-foreground/60 hover:text-primary"
+                                    )}
+                                >
+                                    EN
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    <Link href={`/${currentLocale}/login`} className="text-xs font-black text-foreground/60 hover:text-primary transition-colors px-4 font-mono uppercase tracking-wider">
                         LOGIN
                     </Link>
                     <Link
-                        href="/register"
+                        href={`/${currentLocale}/register`}
                         className="tech-border bg-primary/10 border-primary/40 text-primary px-5 py-2 text-xs font-black hover:bg-primary/20 transition-all font-mono uppercase tracking-wider flex items-center gap-2"
                     >
                         REGISTER
@@ -112,7 +155,7 @@ export default function Navbar() {
                                 {navigation.map((item) => (
                                     <Link
                                         key={item.name}
-                                        href={item.href}
+                                        href={`/${currentLocale}${item.href}`}
                                         className="tech-border bg-black/40 border-border/40 block px-4 py-3 text-xs font-black leading-7 text-foreground/80 hover:text-primary hover:border-primary/50 transition-colors font-mono uppercase tracking-wider"
                                         onClick={() => setMobileMenuOpen(false)}
                                     >
@@ -121,15 +164,35 @@ export default function Navbar() {
                                 ))}
                             </div>
                             <div className="py-6 flex flex-col gap-3">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => { switchLocale('fr'); }}
+                                        className={cn(
+                                            "flex-1 tech-border border-border/40 px-4 py-3 text-xs font-black transition-colors font-mono uppercase tracking-wider",
+                                            currentLocale === 'fr' ? "text-primary bg-primary/10 border-primary/40" : "text-foreground/80 hover:text-primary bg-black/40"
+                                        )}
+                                    >
+                                        FR
+                                    </button>
+                                    <button
+                                        onClick={() => { switchLocale('en'); }}
+                                        className={cn(
+                                            "flex-1 tech-border border-border/40 px-4 py-3 text-xs font-black transition-colors font-mono uppercase tracking-wider",
+                                            currentLocale === 'en' ? "text-primary bg-primary/10 border-primary/40" : "text-foreground/80 hover:text-primary bg-black/40"
+                                        )}
+                                    >
+                                        EN
+                                    </button>
+                                </div>
                                 <Link
-                                    href="/login"
+                                    href={`/${currentLocale}/login`}
                                     className="tech-border bg-black/40 border-border/40 block px-4 py-3 text-xs font-black leading-7 text-foreground/80 hover:text-primary hover:border-primary/50 transition-colors font-mono uppercase tracking-wider"
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
                                     LOGIN
                                 </Link>
                                 <Link
-                                    href="/register"
+                                    href={`/${currentLocale}/register`}
                                     className="w-full flex items-center justify-center gap-2 tech-border bg-primary/10 border-primary/40 px-4 py-3 text-xs font-black text-primary hover:bg-primary/20 transition-all font-mono uppercase tracking-wider"
                                     onClick={() => setMobileMenuOpen(false)}
                                 >

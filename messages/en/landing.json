@@ -1,0 +1,61 @@
+{
+  "hero": {
+    "status": "System_Online :: v2.4.0",
+    "title": {
+      "line1": "Identity",
+      "line2": "Intelligence",
+      "line3": "Protocol"
+    },
+    "description": "Advanced KYC infrastructure for West African fintechs. Neural OCR extraction, fraud detection, and biometric verification via a unified API gateway.",
+    "buttons": {
+      "primary": "Initialize_Access",
+      "secondary": "Read_Documentation"
+    }
+  },
+  "stats": {
+    "accuracy": {
+      "label": "OCR_ACCURACY",
+      "value": "99.2%"
+    },
+    "latency": {
+      "label": "LATENCY",
+      "value": "< 2000ms"
+    },
+    "regions": {
+      "label": "REGIONS",
+      "value": "8+"
+    },
+    "uptime": {
+      "label": "UPTIME",
+      "value": "99.99%"
+    }
+  },
+  "partners": {
+    "title": "Trusted_By_Industry_Leaders"
+  },
+  "features": {
+    "title": "Core_Capabilities",
+    "subtitle": "Digital Identity Suite",
+    "description": "Engineered for the specific challenges of the African market.",
+    "models": {
+      "title": "LOCAL_MODELS",
+      "description": "Neural networks trained on thousands of UEMOA documents for unmatched precision on local ID cards and passports."
+    },
+    "fraud": {
+      "title": "FRAUD_DETECTION",
+      "description": "Automated analysis of image tampering, photocopies, and MRZ consistency checks."
+    },
+    "sovereignty": {
+      "title": "DATA_SOVEREIGNTY",
+      "description": "Infrastructure deployed locally or compliant with CDP regulations. Your user data remains secure."
+    }
+  },
+  "cta": {
+    "title": "Ready to Integrate?",
+    "description": "Get your API keys in 2 minutes. 100 free extractions included.",
+    "buttons": {
+      "primary": "Create_Account",
+      "secondary": "Contact_Sales"
+    }
+  }
+}

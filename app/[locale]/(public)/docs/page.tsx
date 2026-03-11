@@ -3,22 +3,23 @@
 import { Book, Code, Terminal, Zap, ChevronRight, Search, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useTranslations } from 'next-intl';
 
 const sections = [
     {
-        title: "Démarrage Rapide",
+        titleKey: "quickStart",
         icon: Zap,
         description: "Apprenez à intégrer Kiriku en moins de 5 minutes.",
         links: ["Installation", "Authentification", "Votre première extraction"]
     },
     {
-        title: "API Reference",
+        titleKey: "apiReference",
         icon: Code,
         description: "Documentation détaillée de tous nos points de terminaison.",
         links: ["Documents ID", "Passeports", "Extraits de naissance", "NINEA"]
     },
     {
-        title: "SDKs & Outils",
+        titleKey: "sdks",
         icon: Terminal,
         description: "Bibliothèques prêtes à l'emploi pour vos langages préférés.",
         links: ["Node.js SDK", "Python Client", "PHP Library", "Postman Collection"]
@@ -26,6 +27,8 @@ const sections = [
 ];
 
 export default function DocsPage() {
+    const t = useTranslations('docs');
+
     return (
         <div className="bg-black min-h-screen">
             <div className="max-w-7xl mx-auto px-6 py-20">
@@ -36,8 +39,11 @@ export default function DocsPage() {
                         </span>
                     </div>
                     <h1 className="text-4xl sm:text-5xl font-black text-foreground mb-6 leading-tight font-mono uppercase tracking-wider">
-                        Tout ce dont vous avez besoin pour bâtir avec Kiriku
+                        {t('title')}
                     </h1>
+                    <p className="text-lg text-foreground/70 mb-8 font-mono uppercase tracking-wider">
+                        {t('subtitle')}
+                    </p>
                     <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" size={18} />
                         <input
@@ -50,11 +56,11 @@ export default function DocsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
                     {sections.map((section) => (
-                        <div key={section.title} className="tech-border bg-black/40 border-border/40 p-6 hover:border-primary/40 hover:bg-black/50 transition-all group">
+                        <div key={section.titleKey} className="tech-border bg-black/40 border-border/40 p-6 hover:border-primary/40 hover:bg-black/50 transition-all group">
                             <div className="tech-border p-3 mb-6 w-fit">
                                 <section.icon size={20} className="text-primary group-hover:scale-110 transition-transform" />
                             </div>
-                            <h3 className="text-xl font-black text-foreground mb-3 font-mono uppercase tracking-wider">{section.title}</h3>
+                            <h3 className="text-xl font-black text-foreground mb-3 font-mono uppercase tracking-wider">{t(section.titleKey)}</h3>
                             <p className="text-xs text-foreground/60 font-mono uppercase tracking-wider mb-6 leading-relaxed">
                                 {section.description}
                             </p>

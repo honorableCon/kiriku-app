@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { MoveRight, ShieldCheck, Zap, Database, Server, Code, Terminal, Scan, Activity, Lock, Cpu } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from 'next-intl';
 
 const partners = [
     { name: 'ORANGE_MONEY', color: '#ff7900' },
@@ -13,6 +14,7 @@ const partners = [
 ];
 
 export default function LandingPage() {
+    const t = useTranslations('landing');
     return (
         <div className="bg-background overflow-hidden text-foreground selection:bg-primary selection:text-black min-h-screen font-mono">
             {/* Background Effects */}
@@ -37,18 +39,17 @@ export default function LandingPage() {
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
                                 </span>
-                                System_Online :: v2.4.0
+                                {t('hero.status')}
                             </div>
-                            
+
                             <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-8 leading-none uppercase">
-                                Identity <br />
-                                <span className="text-primary">Intelligence</span> <br />
-                                Protocol
+                                {t('hero.title.line1')} <br />
+                                <span className="text-primary">{t('hero.title.line2')}</span> <br />
+                                {t('hero.title.line3')}
                             </h1>
-                            
+
                             <p className="mt-6 max-w-xl text-lg text-foreground/60 leading-relaxed font-sans border-l-2 border-primary/30 pl-6">
-                                Advanced KYC infrastructure for West African fintechs. 
-                                Neural OCR extraction, fraud detection, and biometric verification via a unified API gateway.
+                                {t('hero.description')}
                             </p>
 
                             <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
@@ -56,15 +57,15 @@ export default function LandingPage() {
                                     href="/register"
                                     className="w-full sm:w-auto px-8 py-4 bg-primary text-black font-bold text-sm tracking-widest uppercase hover:bg-white transition-all flex items-center justify-center gap-2 clip-path-polygon group"
                                 >
-                                    Initialize_Access
+                                    {t('hero.buttons.primary')}
                                     <MoveRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </Link>
-                                <Link 
-                                    href="/docs" 
+                                <Link
+                                    href="/docs"
                                     className="w-full sm:w-auto px-8 py-4 border border-border bg-black/50 text-foreground font-bold text-sm tracking-widest uppercase hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-2"
                                 >
                                     <Terminal className="w-4 h-4" />
-                                    Read_Documentation
+                                    {t('hero.buttons.secondary')}
                                 </Link>
                             </div>
                         </motion.div>
@@ -135,10 +136,10 @@ export default function LandingPage() {
                     {/* Stats */}
                     <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-border pt-12">
                         {[
-                            { label: 'OCR_ACCURACY', value: '99.2%' },
-                            { label: 'LATENCY', value: '< 2000ms' },
-                            { label: 'REGIONS', value: '8+' },
-                            { label: 'UPTIME', value: '99.99%' },
+                            { label: t('stats.accuracy.label'), value: t('stats.accuracy.value') },
+                            { label: t('stats.latency.label'), value: t('stats.latency.value') },
+                            { label: t('stats.regions.label'), value: t('stats.regions.value') },
+                            { label: t('stats.uptime.label'), value: t('stats.uptime.value') },
                         ].map((stat, i) => (
                             <div key={i} className="flex flex-col gap-1">
                                 <span className="text-3xl font-bold text-foreground font-sans">{stat.value}</span>
@@ -153,7 +154,7 @@ export default function LandingPage() {
             <section className="py-12 border-b border-border bg-accent/5">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     <p className="text-center text-[10px] font-bold text-foreground/40 uppercase tracking-[0.3em] mb-8">
-                        Trusted_By_Industry_Leaders
+                        {t('partners.title')}
                     </p>
                     <div className="flex flex-wrap justify-center items-center gap-12 lg:gap-24 opacity-50 hover:opacity-100 transition-opacity duration-500">
                         {partners.map((partner) => (
@@ -167,12 +168,12 @@ export default function LandingPage() {
             <section className="py-32 relative z-10">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     <div className="text-center max-w-3xl mx-auto mb-20">
-                        <h2 className="text-primary font-bold tracking-widest uppercase text-xs mb-4">Core_Capabilities</h2>
+                        <h2 className="text-primary font-bold tracking-widest uppercase text-xs mb-4">{t('features.title')}</h2>
                         <h3 className="text-4xl font-bold text-foreground mb-6 uppercase tracking-tight">
-                            Digital Identity <br /> Suite
+                            {t('features.subtitle')}
                         </h3>
                         <p className="text-foreground/60 font-sans text-lg">
-                            Engineered for the specific challenges of the African market.
+                            {t('features.description')}
                         </p>
                     </div>
 
@@ -180,18 +181,18 @@ export default function LandingPage() {
                         {[
                             {
                                 icon: Database,
-                                title: "LOCAL_MODELS",
-                                desc: "Neural networks trained on thousands of UEMOA documents for unmatched precision on local ID cards and passports."
+                                title: t('features.models.title'),
+                                desc: t('features.models.description')
                             },
                             {
                                 icon: ShieldCheck,
-                                title: "FRAUD_DETECTION",
-                                desc: "Automated analysis of image tampering, photocopies, and MRZ consistency checks."
+                                title: t('features.fraud.title'),
+                                desc: t('features.fraud.description')
                             },
                             {
                                 icon: Server,
-                                title: "DATA_SOVEREIGNTY",
-                                desc: "Infrastructure deployed locally or compliant with CDP regulations. Your user data remains secure."
+                                title: t('features.sovereignty.title'),
+                                desc: t('features.sovereignty.description')
                             }
                         ].map((feature, i) => (
                             <div key={i} className="tech-border bg-black/40 p-8 hover:bg-accent/5 transition-all group">
@@ -214,23 +215,23 @@ export default function LandingPage() {
                         <Cpu className="w-12 h-12 text-primary mx-auto animate-pulse" />
                     </div>
                     <h2 className="text-4xl font-bold text-foreground mb-8 uppercase tracking-tight">
-                        Ready to Integrate?
+                        {t('cta.title')}
                     </h2>
                     <p className="text-foreground/60 mb-12 max-w-2xl mx-auto font-sans">
-                        Get your API keys in 2 minutes. 100 free extractions included.
+                        {t('cta.description')}
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link
                             href="/register"
                             className="w-full sm:w-auto px-12 py-4 bg-primary text-black font-bold text-sm tracking-widest uppercase hover:bg-white transition-all shadow-[0_0_20px_rgba(0,255,148,0.3)]"
                         >
-                            Create_Account
+                            {t('cta.buttons.primary')}
                         </Link>
-                        <Link 
-                            href="/contact" 
+                        <Link
+                            href="/contact"
                             className="w-full sm:w-auto px-12 py-4 border border-border bg-black text-foreground font-bold text-sm tracking-widest uppercase hover:border-primary transition-all"
                         >
-                            Contact_Sales
+                            {t('cta.buttons.secondary')}
                         </Link>
                     </div>
                 </div>

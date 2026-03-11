@@ -1,0 +1,18 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "docs": "Documentation",
+    "pricing": "Tarifs",
+    "login": "Connexion",
+    "register": "Inscription",
+    "dashboard": "Tableau de bord"
+  },
+  "footer": {
+    "rights": "Tous droits réservés",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation"
+  },
+  "language": {
+    "switch": "Changer de langue"
+  }
+}
