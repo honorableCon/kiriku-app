@@ -7,7 +7,7 @@ export default function DashboardRoot() {
     const router = useRouter();
 
     useEffect(() => {
-        router.replace("/overview");
+        router.replace("/dashboard/overview");
     }, [router]);
 
     return (

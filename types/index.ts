@@ -17,6 +17,11 @@ export interface User {
     role: 'user' | 'admin';
     emailVerified: boolean;
     twoFactorEnabled: boolean;
+    notifications?: {
+        extractionEmails: boolean;
+        billingAlerts: boolean;
+        productNewsletter: boolean;
+    };
     credits?: number;
     createdAt: string;
 }

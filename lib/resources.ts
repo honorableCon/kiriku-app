@@ -27,6 +27,43 @@ export async function changePassword(data: any): Promise<void> {
     }
 }
 
+export async function updateNotifications(data: {
+    extractionEmails?: boolean;
+    billingAlerts?: boolean;
+    productNewsletter?: boolean;
+}): Promise<User> {
+    try {
+        const response = await api.put<User>('/users/me/notifications', data);
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function requestPasswordReset(email: string): Promise<void> {
+    try {
+        await api.post('/auth/forgot-password', { email });
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+    try {
+        await api.post('/auth/reset-password', { token, newPassword });
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function verifyEmail(token: string): Promise<void> {
+    try {
+        await api.post('/auth/verify-email', { token });
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
 export async function getExtractions(params?: {
     limit?: number;
     offset?: number;

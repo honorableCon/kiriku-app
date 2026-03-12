@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Mail, Lock, Terminal } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -11,6 +11,9 @@ import { Loader2 } from "lucide-react";
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const params = useSearchParams();
+    const verificationSent = params.get("verify") === "1";
+    const verified = params.get("verified") === "1";
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -63,6 +66,16 @@ export default function LoginPage() {
                 </div>
 
                 <form className="mt-8 tech-border bg-black/60 p-6 backdrop-blur-sm" onSubmit={handleSubmit}>
+                    {verificationSent ? (
+                        <div className="mb-4 border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary/80 font-mono">
+                            Un email de confirmation a été envoyé. Vérifiez votre boîte de réception.
+                        </div>
+                    ) : null}
+                    {verified ? (
+                        <div className="mb-4 border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary/80 font-mono">
+                            Email vérifié. Vous pouvez vous connecter.
+                        </div>
+                    ) : null}
                     <div className="space-y-5">
                         <div>
                             <label htmlFor="email" className="block text-xs font-bold text-foreground/60 mb-2 font-mono uppercase tracking-wider">

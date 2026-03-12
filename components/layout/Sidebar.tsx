@@ -16,9 +16,12 @@ import {
     Plus,
     Activity
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/lib/auth-store";
+import { signOut } from "next-auth/react";
+import { getUsageStats } from "@/lib/resources-ext";
+import { getCurrentUser } from "@/lib/resources";
+import type { UsageStats, User } from "@/types";
 
 const navigation = [
     { name: "DASHBOARD", href: "/dashboard/overview", icon: LayoutDashboard },
@@ -33,6 +36,41 @@ const navigation = [
 export default function Sidebar() {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
+    const [isLoadingStats, setIsLoadingStats] = useState(true);
+    const [user, setUser] = useState<User | null>(null);
+
+    const handleLogout = async () => {
+        await signOut({ callbackUrl: "/login" });
+    };
+
+    useEffect(() => {
+        const fetchUsageStats = async () => {
+            try {
+                const stats = await getUsageStats();
+                setUsageStats(stats);
+            } catch (error) {
+                console.error("Failed to fetch usage stats:", error);
+            } finally {
+                setIsLoadingStats(false);
+            }
+        };
+
+        fetchUsageStats();
+    }, []);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const me = await getCurrentUser();
+                setUser(me);
+            } catch (error) {
+                console.error("Failed to fetch user:", error);
+            }
+        };
+
+        fetchUser();
+    }, []);
 
     return (
         <aside
@@ -93,15 +131,27 @@ export default function Sidebar() {
                         </div>
                         <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
                             <span className="text-foreground/60">Quota Status</span>
-                            <span className="text-primary">ACTIVE</span>
+                            <span className={usageStats?.remainingCredits && usageStats.remainingCredits > 0 ? "text-primary" : "text-destructive"}>
+                                {usageStats?.remainingCredits && usageStats.remainingCredits > 0 ? "ACTIVE" : "EXCEEDED"}
+                            </span>
                         </div>
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs font-mono">
-                                <span className="text-foreground">42 / 100</span>
+                                <span className="text-foreground">
+                                    {isLoadingStats ? "..." : `${usageStats?.thisMonth || 0} / ${usageStats?.quota || 100}`}
+                                </span>
                                 <span className="text-foreground/40">REQ</span>
                             </div>
                             <div className="h-1 w-full bg-accent rounded-none overflow-hidden">
-                                <div className="h-full bg-primary w-[42%]" />
+                                <div
+                                    className={cn(
+                                        "h-full transition-all duration-500",
+                                        usageStats?.remainingCredits === 0 ? "bg-destructive" : "bg-primary"
+                                    )}
+                                    style={{
+                                        width: isLoadingStats ? "0%" : `${((usageStats?.thisMonth || 0) / (usageStats?.quota || 100)) * 100}%`
+                                    }}
+                                />
                             </div>
                         </div>
                         <button className="w-full py-2 border border-primary/30 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-black transition-all flex items-center justify-center gap-2">
@@ -116,13 +166,16 @@ export default function Sidebar() {
                     </div>
                     {!isCollapsed && (
                         <div className="flex-1 overflow-hidden">
-                            <p className="text-xs font-bold text-foreground truncate">USER_ID: 8X92</p>
-                            <button 
-                                onClick={() => {
-                                    const { logout } = useAuthStore.getState();
-                                    logout();
-                                    window.location.href = '/login';
-                                }}
+                            <p className="text-xs font-bold text-foreground truncate font-mono">
+                                {user ? `${user.firstName} ${user.lastName}`.trim() : "USER_SESSION"}
+                            </p>
+                            {user && (
+                                <div className="text-[10px] text-foreground/50 font-mono truncate">
+                                    {user.email} • {user.plan?.toUpperCase() || "FREE"}
+                                </div>
+                            )}
+                            <button
+                                onClick={handleLogout}
                                 className="text-[10px] text-destructive hover:text-destructive/80 font-mono flex items-center gap-1 mt-0.5"
                             >
                                 <LogOut size={10} /> DISCONNECT

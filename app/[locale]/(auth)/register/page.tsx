@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Mail, Lock, User, Building, Terminal } from "lucide-react";
 import { useState } from "react";
 
-import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -12,45 +11,76 @@ import api from "@/lib/api";
 
 export default function RegisterPage() {
     const [isLoading, setIsLoading] = useState(false);
+    const [formError, setFormError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
+        setFormError(null);
+        setFieldErrors({});
 
         const formData = new FormData(e.currentTarget);
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
+        const confirmPassword = formData.get("confirm-password") as string;
         const firstName = formData.get("first-name") as string;
         const lastName = formData.get("last-name") as string;
         const organization = formData.get("org") as string;
+        const trimmedEmail = email?.trim();
+        const trimmedFirstName = firstName?.trim();
+        const trimmedLastName = lastName?.trim();
+        const trimmedOrganization = organization?.trim();
+
+        const validationErrors: Record<string, string> = {};
+        if (!trimmedFirstName || trimmedFirstName.length < 2) {
+            validationErrors.firstName = "Le prénom doit contenir au moins 2 caractères.";
+        }
+        if (!trimmedLastName || trimmedLastName.length < 2) {
+            validationErrors.lastName = "Le nom doit contenir au moins 2 caractères.";
+        }
+        if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+            validationErrors.email = "Email invalide.";
+        }
+        if (trimmedOrganization && trimmedOrganization.length < 2) {
+            validationErrors.organization = "L'organisation doit contenir au moins 2 caractères.";
+        }
+        const passwordRule =
+            /((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*/;
+        if (!password || password.length < 8 || !passwordRule.test(password)) {
+            validationErrors.password =
+                "Le mot de passe doit contenir 8+ caractères, 1 majuscule, 1 minuscule et 1 chiffre ou symbole.";
+        }
+        if (!confirmPassword || confirmPassword !== password) {
+            validationErrors.confirmPassword = "Les mots de passe ne correspondent pas.";
+        }
+
+        if (Object.keys(validationErrors).length > 0) {
+            setFieldErrors(validationErrors);
+            setFormError("Veuillez corriger les erreurs ci-dessous.");
+            setIsLoading(false);
+            return;
+        }
 
         try {
             // 1. Register via Backend API
             await api.post("/auth/register", {
-                email,
+                email: trimmedEmail,
                 password,
-                firstName,
-                lastName,
-                organization
+                firstName: trimmedFirstName,
+                lastName: trimmedLastName,
+                organization: trimmedOrganization || undefined,
             });
 
-            // 2. Auto-login via NextAuth
-            const result = await signIn("credentials", {
-                email,
-                password,
-                redirect: false,
-            });
-
-            if (result?.error) {
-                toast.error("Compte créé mais échec de la connexion automatique");
-                router.push("/login");
-            } else {
-                toast.success("Bienvenue sur Kiriku !");
-                router.push("/dashboard/overview");
-            }
+            toast.success("Compte créé. Vérifiez votre email pour activer votre compte.");
+            router.push("/login?verify=1");
         } catch (err: any) {
-            toast.error(err.response?.data?.message || "Erreur lors de l'inscription");
+            const apiMessage = err.response?.data?.message;
+            const message = Array.isArray(apiMessage) ? apiMessage.join(" ") : apiMessage;
+            const fallbackMessage = message || "Erreur lors de l'inscription";
+            setFormError(fallbackMessage);
+            toast.error(fallbackMessage);
         } finally {
             setIsLoading(false);
         }
@@ -80,6 +110,11 @@ export default function RegisterPage() {
                 </div>
 
                 <form className="mt-8 tech-border bg-black/60 p-6 backdrop-blur-sm" onSubmit={handleSubmit}>
+                    {formError ? (
+                        <div className="mb-4 border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200 font-mono">
+                            {formError}
+                        </div>
+                    ) : null}
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                             <div>
@@ -99,6 +134,9 @@ export default function RegisterPage() {
                                         placeholder="Jean"
                                     />
                                 </div>
+                                {fieldErrors.firstName ? (
+                                    <p className="mt-1 text-[10px] text-red-300 font-mono">{fieldErrors.firstName}</p>
+                                ) : null}
                             </div>
                             <div>
                                 <label htmlFor="last-name" className="block text-xs font-bold text-foreground/60 mb-2 font-mono uppercase tracking-wider">
@@ -112,6 +150,9 @@ export default function RegisterPage() {
                                     className="block w-full px-3 py-2 border border-border bg-black/40 text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-primary focus:bg-primary/5 transition-all text-xs font-mono"
                                     placeholder="Dupont"
                                 />
+                                {fieldErrors.lastName ? (
+                                    <p className="mt-1 text-[10px] text-red-300 font-mono">{fieldErrors.lastName}</p>
+                                ) : null}
                             </div>
                         </div>
 
@@ -131,6 +172,9 @@ export default function RegisterPage() {
                                     placeholder="Ma Startup"
                                 />
                             </div>
+                            {fieldErrors.organization ? (
+                                <p className="mt-1 text-[10px] text-red-300 font-mono">{fieldErrors.organization}</p>
+                            ) : null}
                         </div>
 
                         <div>
@@ -150,6 +194,9 @@ export default function RegisterPage() {
                                     placeholder="jean@exemple.com"
                                 />
                             </div>
+                            {fieldErrors.email ? (
+                                <p className="mt-1 text-[10px] text-red-300 font-mono">{fieldErrors.email}</p>
+                            ) : null}
                         </div>
 
                         <div>
@@ -169,6 +216,31 @@ export default function RegisterPage() {
                                     placeholder="••••••••"
                                 />
                             </div>
+                            {fieldErrors.password ? (
+                                <p className="mt-1 text-[10px] text-red-300 font-mono">{fieldErrors.password}</p>
+                            ) : null}
+                        </div>
+
+                        <div>
+                            <label htmlFor="confirm-password" className="block text-xs font-bold text-foreground/60 mb-2 font-mono uppercase tracking-wider">
+                                <span className="text-primary">[</span> CONFIRM_PASSWORD <span className="text-primary">]</span>
+                            </label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Lock className="h-3.5 w-3.5 text-foreground/30 group-hover:text-primary/60 transition-colors" />
+                                </div>
+                                <input
+                                    id="confirm-password"
+                                    name="confirm-password"
+                                    type="password"
+                                    required
+                                    className="block w-full pl-8 pr-3 py-2 border border-border bg-black/40 text-foreground placeholder:text-foreground/20 focus:outline-none focus:border-primary focus:bg-primary/5 transition-all text-xs font-mono"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                            {fieldErrors.confirmPassword ? (
+                                <p className="mt-1 text-[10px] text-red-300 font-mono">{fieldErrors.confirmPassword}</p>
+                            ) : null}
                         </div>
                     </div>
 

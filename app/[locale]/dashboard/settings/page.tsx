@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Settings, User, Bell, Lock, Globe, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getCurrentUser, updateUser } from "@/lib/resources";
+import { getCurrentUser, updateUser, updateNotifications } from "@/lib/resources";
 import type { User as UserType } from "@/types";
 import { toast } from "sonner";
 
@@ -20,6 +20,11 @@ export default function SettingsPage() {
         email: "",
         organization: "",
     });
+    const [notificationPrefs, setNotificationPrefs] = useState({
+        extractionEmails: false,
+        billingAlerts: true,
+        productNewsletter: false,
+    });
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -31,6 +36,11 @@ export default function SettingsPage() {
                     lastName: userData.lastName,
                     email: userData.email,
                     organization: userData.organization || "",
+                });
+                setNotificationPrefs({
+                    extractionEmails: userData.notifications?.extractionEmails ?? false,
+                    billingAlerts: userData.notifications?.billingAlerts ?? true,
+                    productNewsletter: userData.notifications?.productNewsletter ?? false,
                 });
             } catch (err) {
                 toast.error("Erreur lors du chargement du profil");
@@ -62,6 +72,19 @@ export default function SettingsPage() {
             toast.error(err instanceof Error ? err.message : "Erreur lors de la sauvegarde");
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleToggleNotification = async (key: keyof typeof notificationPrefs) => {
+        const next = { ...notificationPrefs, [key]: !notificationPrefs[key] };
+        setNotificationPrefs(next);
+        try {
+            const updated = await updateNotifications(next);
+            setUser((prev) => prev ? { ...prev, notifications: updated.notifications } : prev);
+            toast.success("Notifications mises à jour");
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Erreur lors de la mise à jour");
+            setNotificationPrefs(notificationPrefs);
         }
     };
 
@@ -192,17 +215,32 @@ export default function SettingsPage() {
                             <h3 className="text-lg font-black text-foreground mb-6 font-mono uppercase tracking-wider">NOTIFICATION_PREFERENCES</h3>
                             <div className="space-y-4">
                                 {[
-                                    { label: "EXTRACTION_EMAILS", desc: "Receive email on each completed extraction" },
-                                    { label: "BILLING_ALERTS", desc: "Notifications on credit usage" },
-                                    { label: "PRODUCT_NEWSLETTER", desc: "Latest features and updates" },
-                                ].map((item, i) => (
-                                    <div key={i} className="flex items-center justify-between p-4 border border-border/50 hover:border-primary/50 transition-all">
+                                    { key: "extractionEmails", label: "EXTRACTION_EMAILS", desc: "Receive email on each completed extraction" },
+                                    { key: "billingAlerts", label: "BILLING_ALERTS", desc: "Notifications on credit usage" },
+                                    { key: "productNewsletter", label: "PRODUCT_NEWSLETTER", desc: "Latest features and updates" },
+                                ].map((item) => (
+                                    <div key={item.key} className="flex items-center justify-between p-4 border border-border/50 hover:border-primary/50 transition-all">
                                         <div>
                                             <p className="text-sm font-bold text-foreground font-mono uppercase">{item.label}</p>
                                             <p className="text-xs text-foreground/50 font-mono">{item.desc}</p>
                                         </div>
-                                        <button className="w-12 h-6 bg-primary border border-primary relative transition-colors">
-                                            <span className="absolute right-1 top-1 w-4 h-4 bg-black rounded-full transition-transform" />
+                                        <button
+                                            onClick={() => handleToggleNotification(item.key as keyof typeof notificationPrefs)}
+                                            className={cn(
+                                                "w-12 h-6 border relative transition-colors",
+                                                notificationPrefs[item.key as keyof typeof notificationPrefs]
+                                                    ? "bg-primary border-primary"
+                                                    : "bg-black/40 border-border"
+                                            )}
+                                        >
+                                            <span
+                                                className={cn(
+                                                    "absolute top-1 w-4 h-4 bg-black rounded-full transition-transform",
+                                                    notificationPrefs[item.key as keyof typeof notificationPrefs]
+                                                        ? "right-1"
+                                                        : "left-1"
+                                                )}
+                                            />
                                         </button>
                                     </div>
                                 ))}
