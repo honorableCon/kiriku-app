@@ -14,7 +14,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Plus,
-    Activity
+    Activity,
+    Book
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ const navigation = [
     { name: "ANALYTICS", href: "/dashboard/analytics", icon: BarChart3 },
     { name: "WEBHOOKS", href: "/dashboard/webhooks", icon: Webhook },
     { name: "BILLING", href: "/dashboard/billing", icon: CreditCard },
+    { name: "DOCUMENTATION", href: "/docs", icon: Book },
     { name: "SYSTEM", href: "/dashboard/settings", icon: Settings },
 ];
 
