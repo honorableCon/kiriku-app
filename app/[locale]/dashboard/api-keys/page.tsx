@@ -218,7 +218,7 @@ export default function ApiKeysPage() {
                         {`curl -X POST https://api.kiriku.sn/v1/extract \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -F "file=@document.jpg" \\
-  -F "type=cni-senegal"`}
+  -F "documentType=cni-senegal"`}
                     </pre>
                 </div>
             </div>
