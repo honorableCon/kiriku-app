@@ -86,10 +86,13 @@ export default function DocsPage() {
                     </div>
                     <div className="space-y-4">
                         <p className="text-xs text-foreground/60 font-mono uppercase tracking-wider">
-                            Toutes les requêtes API sécurisées nécessitent un token JWT dans l'en-tête Authorization.
+                            Toutes les requêtes API sécurisées acceptent une API key ou un JWT. Pour les intégrations externes, privilégiez l'API key.
                         </p>
                         <div className="tech-border bg-black/60 border-border/40 p-4 text-xs text-primary/80 font-mono overflow-x-auto">
-                            <pre>{`# Format de l'en-tête Authorization
+                            <pre>{`# API key (recommandé)
+X-API-Key: sk_...
+
+# JWT (web app)
 Authorization: Bearer <YOUR_JWT_TOKEN>
 
 # Obtenir votre token via l'endpoint d'authentification
@@ -100,14 +103,18 @@ curl -X POST https://api.kiriku.app/v1/auth/login \\
     "password": "votre_mot_de_passe"
   }'`}</pre>
                         </div>
+                        <div className="tech-border bg-black/60 border-border/40 p-4">
+                            <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-2 font-mono">ACTIVATION COMPTE</p>
+                            <p className="text-xs text-foreground/70 font-mono">L'email doit être vérifié pour activer le compte.</p>
+                        </div>
                         <div className="grid md:grid-cols-2 gap-4 mt-4">
                             <div className="tech-border bg-black/60 border-border/40 p-4">
                                 <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-2 font-mono">DURÉE DE VALIDITÉ</p>
-                                <p className="text-xs text-foreground/70 font-mono">24 heures</p>
+                                <p className="text-xs text-foreground/70 font-mono">JWT: 24 heures</p>
                             </div>
                             <div className="tech-border bg-black/60 border-border/40 p-4">
-                                <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-2 font-mono">RÉNOVATION</p>
-                                <p className="text-xs text-foreground/70 font-mono">Refresh token disponible</p>
+                                <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-2 font-mono">API KEY</p>
+                                <p className="text-xs text-foreground/70 font-mono">Persistante, révocable</p>
                             </div>
                         </div>
                     </div>
@@ -149,7 +156,7 @@ curl -X POST https://api.kiriku.app/v1/auth/login \\
                 </div>
 
                 <div className="space-y-8">
-                    <div className="tech-border bg-black/40 border-primary/20 p-6">
+                        <div className="tech-border bg-black/40 border-primary/20 p-6">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="tech-border bg-primary/20 border-primary/40 p-2">
                                 <Zap size={16} className="text-primary" />
@@ -157,12 +164,12 @@ curl -X POST https://api.kiriku.app/v1/auth/login \\
                             <h3 className="text-xl font-black text-foreground font-mono uppercase tracking-wider">Démarrage rapide</h3>
                         </div>
                         <p className="text-xs text-foreground/60 font-mono uppercase tracking-wider mb-6">
-                            Base URL: <span className="text-primary font-black">https://api.kiriku.app/v1</span>. Les appels d'écriture nécessitent un token JWT.
+                            Base URL: <span className="text-primary font-black">https://api.kiriku.app/v1</span>. Les appels d'écriture nécessitent une API key ou un JWT.
                         </p>
                         <div className="tech-border bg-black/60 border-border/40 p-4 text-xs text-primary/80 font-mono overflow-x-auto mb-4">
                             <pre>{`# Extraction rapide (multipart) - envoi des options en champs séparés (recommandé)
 curl -X POST https://api.kiriku.app/v1/extract \\
-  -H "Authorization: Bearer <TOKEN>" \\
+  -H "X-API-Key: <YOUR_API_KEY>" \\
   -F "file=@/chemin/vers/cni_recto.jpg" \\
   -F "documentType=cni-senegal" \\
   -F "fraudCheck=true" \\
@@ -172,7 +179,7 @@ curl -X POST https://api.kiriku.app/v1/extract \\
                         <div className="tech-border bg-black/60 border-border/40 p-4 text-xs text-primary/80 font-mono overflow-x-auto">
                             <pre>{`# Variante: envoi des options dans un seul champ JSON
 curl -X POST https://api.kiriku.app/v1/extract \\
-  -H "Authorization: Bearer <TOKEN>" \\
+  -H "X-API-Key: <YOUR_API_KEY>" \\
   -F "file=@/chemin/vers/cni_recto.jpg" \\
   -F "documentType=cni-senegal" \\
   -F "options={\\"fraudCheck\\":true,\\"returnConfidence\\":true,\\"returnRawText\\":false}"`}</pre>
@@ -192,7 +199,7 @@ const response = await fetch(
   {
     method: 'POST',
     headers: {
-      'Authorization': \`Bearer \${token}\`
+      'X-API-Key': apiKey
     },
     body: formData
   }
@@ -208,7 +215,7 @@ const result = await response.json();`}</pre>
 
 url = "https://api.kiriku.app/v1/extract"
 headers = {
-    "Authorization": f"Bearer {token}"
+    "X-API-Key": apiKey
 }
 files = {
     "file": open("cni_recto.jpg", "rb")

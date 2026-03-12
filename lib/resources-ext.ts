@@ -1,5 +1,5 @@
 import { api, getErrorMessage } from './api';
-import type { ApiKey, Webhook, UsageStats, AnalyticsOverview, TimeSeriesData, User } from '@/types';
+import type { ApiKey, Webhook, UsageStats, AnalyticsOverview, TimeSeriesData, User, Plan } from '@/types';
 
 export async function getAdminUsers(params: { limit: number; offset: number }): Promise<{ data: User[]; total: number }> {
     try {
@@ -138,6 +138,83 @@ export async function exportAnalytics(params?: {
 }): Promise<{ data: string; format: string }> {
     try {
         const response = await api.get<{ data: string; format: string }>('/analytics/export', { params });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function getPlans(): Promise<Plan[]> {
+    try {
+        const response = await api.get<{ plans: Plan[] }>('/plans');
+        return response.data.plans;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function createPlan(data: {
+    name: string;
+    description: string;
+    amount: number;
+    currency: string;
+    interval: 'month' | 'year' | 'one_time';
+    credits: number;
+    features: string[];
+    type?: 'subscription' | 'pack';
+    quotas?: { monthly?: number; daily?: number; concurrent?: number };
+    creditCost?: number;
+}): Promise<{ plan: Plan }> {
+    try {
+        const response = await api.post<{ plan: Plan }>('/plans', data);
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function updatePlan(id: string, data: {
+    name?: string;
+    description?: string;
+    amount?: number;
+    currency?: string;
+    interval?: 'month' | 'year' | 'one_time';
+    credits?: number;
+    features?: string[];
+    isActive?: boolean;
+    type?: 'subscription' | 'pack';
+    quotas?: { monthly?: number; daily?: number; concurrent?: number };
+    creditCost?: number;
+}): Promise<{ plan: Plan }> {
+    try {
+        const response = await api.put<{ plan: Plan }>(`/plans/${id}`, data);
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function deletePlan(id: string): Promise<{ message: string }> {
+    try {
+        const response = await api.delete<{ message: string }>(`/plans/${id}`);
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function updatePlanStatus(id: string, isActive: boolean): Promise<{ plan: Plan }> {
+    try {
+        const response = await api.patch<{ plan: Plan }>(`/plans/${id}/status`, { isActive });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function syncPlanWithDexpay(id: string, dexpayProductId: string): Promise<{ plan: Plan }> {
+    try {
+        const response = await api.patch<{ plan: Plan }>(`/plans/${id}/sync`, { dexpayProductId });
         return response.data;
     } catch (error) {
         throw new Error(getErrorMessage(error));

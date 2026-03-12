@@ -22,6 +22,7 @@ import { signOut } from "next-auth/react";
 import { getUsageStats } from "@/lib/resources-ext";
 import { getCurrentUser } from "@/lib/resources";
 import type { UsageStats, User } from "@/types";
+import { useLocale } from "next-intl";
 
 const navigation = [
     { name: "DASHBOARD", href: "/dashboard/overview", icon: LayoutDashboard },
@@ -35,10 +36,18 @@ const navigation = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const locale = useLocale();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
     const [isLoadingStats, setIsLoadingStats] = useState(true);
     const [user, setUser] = useState<User | null>(null);
+
+    const withLocale = (href: string) => {
+        if (!href.startsWith("/")) return `/${locale}/${href}`;
+        if (href.startsWith(`/${locale}/`) || href === `/${locale}`) return href;
+        return `/${locale}${href}`;
+    };
+    const normalizedPathname = pathname?.replace(new RegExp(`^/${locale}`), "") || "";
 
     const handleLogout = async () => {
         await signOut({ callbackUrl: "/login" });
@@ -80,7 +89,7 @@ export default function Sidebar() {
             )}
         >
             <div className="flex h-16 items-center justify-between px-6 border-b border-border bg-accent/10">
-                <Link href="/" className="flex items-center gap-3 overflow-hidden group">
+                <Link href={`/${locale}`} className="flex items-center gap-3 overflow-hidden group">
                     <div className="min-w-8 h-8 bg-primary/10 border border-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-black transition-all">
                         <span className="text-primary group-hover:text-black font-mono font-bold text-lg">K</span>
                     </div>
@@ -101,11 +110,11 @@ export default function Sidebar() {
 
             <div className="flex-1 overflow-y-auto py-6 px-0 space-y-1">
                 {navigation.map((item) => {
-                    const isActive = pathname === item.href;
+                    const isActive = normalizedPathname === item.href;
                     return (
                         <Link
                             key={item.name}
-                            href={item.href}
+                            href={withLocale(item.href)}
                             className={cn(
                                 "flex items-center gap-4 px-6 py-3 text-xs font-bold tracking-widest transition-all group relative border-l-2",
                                 isActive
@@ -154,9 +163,12 @@ export default function Sidebar() {
                                 />
                             </div>
                         </div>
-                        <button className="w-full py-2 border border-primary/30 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-black transition-all flex items-center justify-center gap-2">
+                        <Link
+                            href={withLocale("/dashboard/billing")}
+                            className="w-full py-2 border border-primary/30 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-black transition-all flex items-center justify-center gap-2"
+                        >
                             <Plus size={12} /> Upgrade Node
-                        </button>
+                        </Link>
                     </div>
                 )}
                 

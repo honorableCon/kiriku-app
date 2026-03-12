@@ -12,6 +12,7 @@ export interface User {
     firstName: string;
     lastName: string;
     organization?: string;
+    phone?: string;
     country: string;
     plan: 'free' | 'starter' | 'growth' | 'pro' | 'enterprise';
     role: 'user' | 'admin';
@@ -256,4 +257,25 @@ export interface TimeSeriesData {
     successCount: number;
     avgConfidence: number;
     avgLatency: number;
+}
+
+export interface Plan {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    currency: string;
+    interval: 'month' | 'year' | 'one_time';
+    credits: number;
+    features: string[];
+    type?: 'subscription' | 'pack';
+    quotas?: {
+        monthly: number;
+        daily: number;
+        concurrent: number;
+    };
+    creditCost?: number;
+    stripePriceId?: string;
+    dexpayProductId?: string;
+    isActive: boolean;
 }

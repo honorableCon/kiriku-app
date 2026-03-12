@@ -1,10 +1,19 @@
 import api, { getErrorMessage } from './api';
-import type { Extraction, Template, Webhook, UsageStats, AnalyticsOverview, TimeSeriesData, User } from '@/types';
+import type { Extraction, Template, Webhook, UsageStats, AnalyticsOverview, TimeSeriesData, User, Plan } from '@/types';
 
 export async function getCurrentUser(): Promise<User> {
     try {
         const response = await api.get<User>('/users/me');
         return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function getPlans(): Promise<Plan[]> {
+    try {
+        const response = await api.get<{ plans: Plan[] }>('/plans');
+        return response.data.plans;
     } catch (error) {
         throw new Error(getErrorMessage(error));
     }
@@ -162,9 +171,27 @@ export async function getTemplate(slug: string): Promise<Template> {
     }
 }
 
-export async function createCheckoutSession(amount: number, credits: number, itemName: string): Promise<{ paymentUrl: string; reference: string }> {
+export async function createCheckoutSession(planId: string): Promise<{ paymentUrl: string; reference: string }> {
     try {
-        const response = await api.post('/billing/checkout', { amount, credits, itemName });
+        const response = await api.post('/billing/checkout', { planId });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function createSubscription(plan: string, phone?: string): Promise<{ subscription: any; paymentUrl?: string | null }> {
+    try {
+        const response = await api.post('/billing/subscribe', { plan, phone });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function cancelSubscription(subscriptionId?: string): Promise<{ subscription: any }> {
+    try {
+        const response = await api.post('/billing/subscription/cancel', { subscriptionId });
         return response.data;
     } catch (error) {
         throw new Error(getErrorMessage(error));
