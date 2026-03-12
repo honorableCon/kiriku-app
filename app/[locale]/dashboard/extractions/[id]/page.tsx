@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getExtraction, submitFeedback } from "@/lib/resources";
 import { Extraction } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton/skeleton";
-import { ArrowLeft, Save, CheckCircle, AlertTriangle, FileText, ZoomIn, Download } from "lucide-react";
+import { ArrowLeft, Save, CheckCircle, AlertTriangle, FileText, ZoomIn, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -18,12 +18,20 @@ export default function ExtractionDetailsPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState<Record<string, any>>({});
     const [isReviewed, setIsReviewed] = useState(false);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [imageLoading, setImageLoading] = useState(true);
+    const [imageError, setImageError] = useState(false);
 
     useEffect(() => {
         const fetchExtraction = async () => {
             try {
                 const data = await getExtraction(params.id as string);
                 setExtraction(data);
+                
+                // Fetch the image file
+                if (data.file?.storageKey) {
+                    setImageUrl(`/api/v1/extractions/${params.id}/file`);
+                }
                 
                 // Initialize form data from result
                 if (data.result?.extractedData) {
@@ -151,15 +159,43 @@ export default function ExtractionDetailsPage() {
 
             {/* Split View */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
-                {/* Left: Document Preview (Mocked for now as we don't have real file storage URL) */}
+                {/* Left: Document Preview */}
                 <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden flex flex-col relative group">
-                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/50">
-                        <div className="text-center p-6">
-                            <FileText size={48} className="mx-auto text-zinc-700 mb-4" />
-                            <p className="text-zinc-500 font-medium">Aperçu du document</p>
-                            <p className="text-zinc-600 text-sm mt-1">{extraction.file?.originalName}</p>
+                    {imageError ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/50">
+                            <div className="text-center p-6">
+                                <FileText size={48} className="mx-auto text-zinc-700 mb-4" />
+                                <p className="text-zinc-500 font-medium">Aperçu du document</p>
+                                <p className="text-zinc-600 text-sm mt-1">{extraction.file?.originalName}</p>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center bg-zinc-950/30 p-4">
+                            {imageLoading && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Loader2 className="animate-spin text-zinc-500" size={48} />
+                                </div>
+                            )}
+                            {imageUrl ? (
+                                <img
+                                    src={imageUrl}
+                                    alt={extraction.file?.originalName || 'Document'}
+                                    className="max-w-full max-h-full object-contain rounded-lg"
+                                    onLoad={() => setImageLoading(false)}
+                                    onError={() => {
+                                        setImageLoading(false);
+                                        setImageError(true);
+                                    }}
+                                />
+                            ) : (
+                                <div className="text-center p-6">
+                                    <FileText size={48} className="mx-auto text-zinc-700 mb-4" />
+                                    <p className="text-zinc-500 font-medium">Aperçu du document</p>
+                                    <p className="text-zinc-600 text-sm mt-1">{extraction.file?.originalName}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button className="p-2 bg-black/80 text-white rounded-lg hover:bg-black"><ZoomIn size={20} /></button>
                     </div>
