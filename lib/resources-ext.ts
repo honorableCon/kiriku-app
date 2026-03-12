@@ -10,6 +10,36 @@ export async function getAdminUsers(params: { limit: number; offset: number }): 
     }
 }
 
+export async function getAdminInvoices(params: {
+    limit: number;
+    offset: number;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+}): Promise<{ data: any[]; total: number }> {
+    try {
+        const response = await api.get<{ data: any[]; total: number }>('/billing/admin/invoices', { params });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function getAdminTransactions(params: {
+    limit: number;
+    offset: number;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+}): Promise<{ data: any[]; total: number }> {
+    try {
+        const response = await api.get<{ data: any[]; total: number }>('/billing/admin/transactions', { params });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
 export async function getApiKeys(): Promise<ApiKey[]> {
     try {
         const response = await api.get<ApiKey[]>('/api-keys');

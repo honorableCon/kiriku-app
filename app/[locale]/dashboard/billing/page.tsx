@@ -1,60 +1,62 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, Shield, Zap, Loader2, ArrowRight } from "lucide-react";
-import { createCheckoutSession, createSubscription, getCurrentUser, getPlans } from "@/lib/resources";
+import { CreditCard, Shield, Zap, Loader2, ArrowRight, Check, X, FileText } from "lucide-react";
+import { createCheckoutSession, createSubscription, getCurrentUser, getPlans, getActiveSubscription, getInvoices, cancelSubscription } from "@/lib/resources";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
-import type { User, Plan } from "@/types";
+import type { User, Plan, Subscription, Invoice } from "@/types";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export default function BillingPage() {
     const [isLoading, setIsLoading] = useState<string | null>(null);
     const [isSubscribing, setIsSubscribing] = useState<string | null>(null);
+    const [isCancelling, setIsCancelling] = useState(false);
     const [billingPhone, setBillingPhone] = useState("");
     const [user, setUser] = useState<User | null>(null);
     const [plans, setPlans] = useState<Plan[]>([]);
+    const [activeSubscription, setActiveSubscription] = useState<Subscription | null>(null);
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [isPlansLoading, setIsPlansLoading] = useState(true);
     const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
     const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
     const params = useSearchParams();
 
+    const loadData = async () => {
+        try {
+            const [me, fetchedPlans, sub, invs] = await Promise.all([
+                getCurrentUser(),
+                getPlans(),
+                getActiveSubscription(),
+                getInvoices()
+            ]);
+            setUser(me);
+            if (me.phone) setBillingPhone(me.phone);
+            setPlans(fetchedPlans);
+            setActiveSubscription(sub);
+            setInvoices(invs);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsPlansLoading(false);
+        }
+    };
+
     useEffect(() => {
         const status = params.get("status");
         if (status === "success") {
             toast.success("Paiement confirmé. Vos crédits seront ajoutés.");
+            // Reload data to show updated credits/subscription
+            loadData();
         } else if (status === "cancel") {
             toast.error("Paiement annulé.");
         }
     }, [params]);
 
     useEffect(() => {
-        const loadUser = async () => {
-            try {
-                const me = await getCurrentUser();
-                setUser(me);
-                if (me.phone) {
-                    setBillingPhone(me.phone);
-                }
-            } catch {
-                // ignore
-            }
-        };
-        loadUser();
-    }, []);
-
-    useEffect(() => {
-        const loadPlans = async () => {
-            try {
-                const fetchedPlans = await getPlans();
-                setPlans(fetchedPlans);
-            } catch {
-                // ignore
-            } finally {
-                setIsPlansLoading(false);
-            }
-        };
-        loadPlans();
+        loadData();
     }, []);
 
     const handlePurchase = async (pack: Plan) => {
@@ -81,11 +83,27 @@ export default function BillingPage() {
                 window.location.assign(result.paymentUrl);
             } else {
                 toast.success("Abonnement créé. En attente de confirmation.");
+                loadData();
             }
         } catch (err: any) {
             toast.error(err?.message || "Erreur lors de la souscription");
         } finally {
             setIsSubscribing(null);
+        }
+    };
+
+    const handleCancelSubscription = async () => {
+        if (!confirm("Êtes-vous sûr de vouloir annuler votre abonnement ? Vous conserverez vos avantages jusqu'à la fin de la période.")) return;
+        
+        setIsCancelling(true);
+        try {
+            await cancelSubscription();
+            toast.success("Abonnement annulé. Il ne sera pas renouvelé.");
+            loadData();
+        } catch (err: any) {
+            toast.error(err?.message || "Erreur lors de l'annulation");
+        } finally {
+            setIsCancelling(false);
         }
     };
 
@@ -120,8 +138,10 @@ export default function BillingPage() {
         (plan) => plan.type === "subscription" && plan.interval === "year"
     );
 
+    const currentPlanDetails = plans.find(p => p.id === activeSubscription?.planId);
+
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 pb-12">
             <div className="tech-border bg-black/40 border-primary/20 p-6">
                 <div className="flex items-center gap-2 mb-2">
                     <CreditCard size={20} className="text-primary animate-pulse" />
@@ -130,6 +150,118 @@ export default function BillingPage() {
                 <h1 className="text-3xl font-extrabold tracking-tight text-foreground font-mono uppercase">Billing_System</h1>
                 <p className="text-foreground/60 mt-1 font-mono text-xs">CREDIT_MANAGEMENT // INVOICE_TRACKING</p>
             </div>
+
+            <div className="tech-border bg-primary/10 border-primary/30 p-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-primary/20 border border-primary/40 text-primary">
+                            <Zap size={24} className="animate-pulse" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-mono text-foreground/50 uppercase tracking-widest">CURRENT_BALANCE</p>
+                            <p className="text-3xl font-black text-foreground font-mono">{user?.credits?.toLocaleString() || 0} <span className="text-lg text-foreground/40">CREDITS</span></p>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[10px] font-mono text-foreground/50 uppercase tracking-widest">PLAN</p>
+                        <p className="text-sm font-bold text-primary font-mono uppercase">{user?.plan || 'FREE'}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Active Subscription Section */}
+            {activeSubscription && (
+                <div className="tech-border bg-black/40 border-primary/20 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2">
+                            <Shield size={16} className="text-primary" />
+                            <span className="text-xs font-mono text-primary/80 uppercase tracking-widest">ACTIVE_SUBSCRIPTION</span>
+                        </div>
+                        <div className={`px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-wider border ${
+                            activeSubscription.status === 'active' ? 'bg-green-500/10 border-green-500 text-green-500' :
+                            activeSubscription.status === 'cancelled' ? 'bg-yellow-500/10 border-yellow-500 text-yellow-500' :
+                            'bg-red-500/10 border-red-500 text-red-500'
+                        }`}>
+                            {activeSubscription.status}
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <p className="text-[10px] text-foreground/50 font-mono uppercase tracking-widest mb-1">PLAN</p>
+                            <p className="text-lg font-bold text-foreground font-mono uppercase">{currentPlanDetails?.name || activeSubscription.planId}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-foreground/50 font-mono uppercase tracking-widest mb-1">RENEWAL</p>
+                            <p className="text-lg font-bold text-foreground font-mono uppercase">
+                                {activeSubscription.status === 'active' ? format(new Date(activeSubscription.endDate), 'dd MMM yyyy', { locale: fr }) : 'NON'}
+                            </p>
+                        </div>
+                        <div className="flex items-center justify-end">
+                            {activeSubscription.status === 'active' && (
+                                <button 
+                                    onClick={handleCancelSubscription}
+                                    disabled={isCancelling}
+                                    className="px-4 py-2 text-xs font-bold font-mono uppercase tracking-wider text-red-500 hover:bg-red-500/10 border border-red-500/30 transition-colors"
+                                >
+                                    {isCancelling ? 'Processing...' : 'Cancel Subscription'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Invoices Section */}
+            {invoices.length > 0 && (
+                <div className="tech-border bg-black/40 border-primary/20 p-6">
+                    <div className="flex items-center gap-2 mb-6">
+                        <FileText size={16} className="text-primary" />
+                        <span className="text-xs font-mono text-primary/80 uppercase tracking-widest">INVOICE_HISTORY</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-border/50 text-[10px] text-foreground/50 font-mono uppercase tracking-widest">
+                                    <th className="py-3 px-2">Reference</th>
+                                    <th className="py-3 px-2">Date</th>
+                                    <th className="py-3 px-2">Amount</th>
+                                    <th className="py-3 px-2">Status</th>
+                                    <th className="py-3 px-2 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {invoices.map((inv) => (
+                                    <tr key={inv._id} className="border-b border-border/10 hover:bg-white/5 transition-colors text-xs font-mono">
+                                        <td className="py-3 px-2 text-foreground/80">{inv.reference}</td>
+                                        <td className="py-3 px-2 text-foreground/60">{format(new Date(inv.createdAt), 'dd MMM yyyy', { locale: fr })}</td>
+                                        <td className="py-3 px-2 font-bold text-foreground">{inv.amount.toLocaleString()} {inv.currency}</td>
+                                        <td className="py-3 px-2">
+                                            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                                inv.status === 'paid' ? 'text-green-500 bg-green-500/10' :
+                                                inv.status === 'pending' ? 'text-yellow-500 bg-yellow-500/10' :
+                                                'text-red-500 bg-red-500/10'
+                                            }`}>
+                                                {inv.status}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 px-2 text-right">
+                                            {inv.status === 'pending' && inv.paymentUrl && (
+                                                <a 
+                                                    href={inv.paymentUrl}
+                                                    className="inline-flex items-center gap-1 px-3 py-1 bg-primary text-black text-[10px] font-bold uppercase tracking-wider hover:bg-primary/90 transition-colors"
+                                                >
+                                                    Payer <ArrowRight size={10} />
+                                                </a>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             <div className="tech-border bg-black/40 border-primary/20 p-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -169,13 +301,14 @@ export default function BillingPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {subscriptionPlans.map((plan) => {
                         const displayPeriod = billingInterval === 'year' ? '/AN' : '/MOIS';
+                        const isCurrentPlan = activeSubscription?.planId === plan.id && activeSubscription?.status === 'active';
 
                         return (
                             <div
                                 key={plan.id}
                                 className={`tech-border bg-black/40 p-6 transition-all hover:border-primary/50 ${
                                     plan.id === 'growth' ? 'border-primary/40' : 'border-border/60'
-                                }`}
+                                } ${isCurrentPlan ? 'bg-primary/5 border-primary' : ''}`}
                             >
                                 {plan.id === 'growth' && (
                                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-primary/10 border border-primary/30 text-primary text-[10px] font-black uppercase tracking-widest font-mono">
@@ -211,17 +344,26 @@ export default function BillingPage() {
                                 </div>
                                 <button
                                     onClick={() => handleSubscribe(plan)}
-                                    disabled={!!isSubscribing}
-                                    className="w-full py-3 text-sm font-black flex items-center justify-center gap-2 transition-all font-mono uppercase tracking-wider border bg-primary/10 border-primary text-primary hover:bg-primary/20 disabled:opacity-50"
+                                    disabled={!!isSubscribing || isCurrentPlan}
+                                    className={`w-full py-3 text-sm font-black flex items-center justify-center gap-2 transition-all font-mono uppercase tracking-wider border ${
+                                        isCurrentPlan 
+                                        ? 'bg-green-500/10 border-green-500 text-green-500 cursor-default' 
+                                        : 'bg-primary/10 border-primary text-primary hover:bg-primary/20 disabled:opacity-50'
+                                    }`}
                                 >
-                                    {isSubscribing === plan.id ? (
+                                    {isCurrentPlan ? (
+                                        <>
+                                            <Check size={16} />
+                                            ACTIVE
+                                        </>
+                                    ) : isSubscribing === plan.id ? (
                                         <>
                                             <Loader2 size={16} className="animate-spin" />
                                             PROCESSING
                                         </>
                                     ) : (
                                         <>
-                                            UPGRADE
+                                            {activeSubscription?.status === 'active' ? 'SWITCH PLAN' : 'UPGRADE'}
                                             <ArrowRight size={14} />
                                         </>
                                     )}
@@ -314,7 +456,7 @@ export default function BillingPage() {
                                 }}
                                 className="p-2 text-foreground/60 hover:text-foreground hover:bg-white/10 rounded transition-colors"
                             >
-                                X
+                                <X size={16} />
                             </button>
                         </div>
                         <div>

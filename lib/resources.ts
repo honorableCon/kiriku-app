@@ -1,5 +1,5 @@
 import api, { getErrorMessage } from './api';
-import type { Extraction, Template, Webhook, UsageStats, AnalyticsOverview, TimeSeriesData, User, Plan } from '@/types';
+import type { Extraction, Template, Webhook, UsageStats, AnalyticsOverview, TimeSeriesData, User, Plan, Subscription, Invoice } from '@/types';
 
 export async function getCurrentUser(): Promise<User> {
     try {
@@ -189,9 +189,28 @@ export async function createSubscription(plan: string, phone?: string): Promise<
     }
 }
 
-export async function cancelSubscription(subscriptionId?: string): Promise<{ subscription: any }> {
+export async function cancelSubscription(subscriptionId?: string): Promise<{ subscription: Subscription }> {
     try {
         const response = await api.post('/billing/subscription/cancel', { subscriptionId });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function getActiveSubscription(): Promise<Subscription | null> {
+    try {
+        const response = await api.get<Subscription>('/billing/subscription/active');
+        return response.data;
+    } catch (error) {
+        // If 404, return null (no active subscription)
+        return null;
+    }
+}
+
+export async function getInvoices(): Promise<Invoice[]> {
+    try {
+        const response = await api.get<Invoice[]>('/billing/invoices');
         return response.data;
     } catch (error) {
         throw new Error(getErrorMessage(error));

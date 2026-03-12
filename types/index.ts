@@ -279,3 +279,26 @@ export interface Plan {
     dexpayProductId?: string;
     isActive: boolean;
 }
+
+export interface Subscription {
+    id: string;
+    planId: string;
+    status: 'active' | 'pending' | 'cancelled' | 'expired' | 'past_due';
+    interval: 'month' | 'year';
+    startDate: string;
+    endDate: string;
+    price: number;
+    currency: string;
+}
+
+export interface Invoice {
+    _id: string;
+    reference: string;
+    amount: number;
+    currency: string;
+    status: 'pending' | 'paid' | 'failed' | 'cancelled';
+    dueDate: string;
+    paidAt?: string;
+    paymentUrl?: string;
+    createdAt: string;
+}

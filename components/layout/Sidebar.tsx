@@ -139,26 +139,26 @@ export default function Sidebar() {
                             <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
                         </div>
                         <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
-                            <span className="text-foreground/60">Quota Status</span>
-                            <span className={usageStats?.remainingCredits && usageStats.remainingCredits > 0 ? "text-primary" : "text-destructive"}>
-                                {usageStats?.remainingCredits && usageStats.remainingCredits > 0 ? "ACTIVE" : "EXCEEDED"}
+                            <span className="text-foreground/60">Balance Status</span>
+                            <span className={user?.credits && user.credits > 0 ? "text-primary" : "text-destructive"}>
+                                {user?.credits && user.credits > 0 ? "ACTIVE" : "EMPTY"}
                             </span>
                         </div>
                         <div className="space-y-1">
                             <div className="flex justify-between text-xs font-mono">
                                 <span className="text-foreground">
-                                    {isLoadingStats ? "..." : `${usageStats?.thisMonth || 0} / ${usageStats?.quota || 100}`}
+                                    {user?.credits?.toLocaleString() || 0}
                                 </span>
-                                <span className="text-foreground/40">REQ</span>
+                                <span className="text-foreground/40">CREDITS</span>
                             </div>
                             <div className="h-1 w-full bg-accent rounded-none overflow-hidden">
                                 <div
                                     className={cn(
                                         "h-full transition-all duration-500",
-                                        usageStats?.remainingCredits === 0 ? "bg-destructive" : "bg-primary"
+                                        user?.credits === 0 ? "bg-destructive" : "bg-primary"
                                     )}
                                     style={{
-                                        width: isLoadingStats ? "0%" : `${((usageStats?.thisMonth || 0) / (usageStats?.quota || 100)) * 100}%`
+                                        width: user?.credits ? `${Math.min((user.credits / 1000) * 100, 100)}%` : "0%"
                                     }}
                                 />
                             </div>
@@ -167,7 +167,7 @@ export default function Sidebar() {
                             href={withLocale("/dashboard/billing")}
                             className="w-full py-2 border border-primary/30 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-black transition-all flex items-center justify-center gap-2"
                         >
-                            <Plus size={12} /> Upgrade Node
+                            <Plus size={12} /> Buy Credits
                         </Link>
                     </div>
                 )}
