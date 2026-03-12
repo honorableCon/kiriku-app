@@ -11,7 +11,7 @@ export default function DocsPage() {
     return (
         <div className="bg-black min-h-screen">
             <div className="max-w-7xl mx-auto px-6 py-20">
-                <div className="max-w-3xl mb-14">
+                <div className="max-w-3xl mb-16">
                     <div className="tech-border bg-primary/10 border-primary/20 inline-block px-4 py-2 mb-6">
                         <span className="text-[10px] font-black text-primary uppercase tracking-widest font-mono flex items-center gap-2">
                             <Book size={14} /> DOCUMENTATION

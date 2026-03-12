@@ -12,7 +12,7 @@ export default async function PublicLayout({
     
     return (
         <div className="flex min-h-screen flex-col">
-            <Navbar locale={locale} />
+            <Navbar />
             <main className="flex-1 pt-20">{children}</main>
             <Footer locale={locale} />
         </div>

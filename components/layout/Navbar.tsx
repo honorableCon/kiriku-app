@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { MoveRight, Menu, X, ArrowRight, Globe } from "lucide-react";
+import { Menu, X, ArrowRight, Globe, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
+import { useSession, signOut } from "next-auth/react";
 
 const navigation = [
     { name: "FEATURES", href: "/#features", label: "FEATURES" },
@@ -13,22 +14,23 @@ const navigation = [
     { name: "DOCS", href: "/docs", label: "DOCUMENTATION" },
 ];
 
-interface NavbarProps {
-    locale?: string;
-}
-
-export default function Navbar({ locale }: NavbarProps) {
+export default function Navbar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [showLangSwitch, setShowLangSwitch] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
     const currentLocale = useLocale();
-    const t = useTranslations('nav');
+    const { data: session, status } = useSession();
+    const isAuthenticated = status === "authenticated";
 
     const switchLocale = (newLocale: string) => {
         const path = pathname.replace(`/${currentLocale}`, `/${newLocale}`);
         router.push(path || `/${newLocale}`);
+    };
+
+    const handleLogout = async () => {
+        await signOut({ callbackUrl: `/${currentLocale}/` });
     };
 
     useEffect(() => {
@@ -111,16 +113,36 @@ export default function Navbar({ locale }: NavbarProps) {
                             </div>
                         )}
                     </div>
-                    <Link href={`/${currentLocale}/login`} className="text-xs font-black text-foreground/60 hover:text-primary transition-colors px-4 font-mono uppercase tracking-wider">
-                        LOGIN
-                    </Link>
-                    <Link
-                        href={`/${currentLocale}/register`}
-                        className="tech-border bg-primary/10 border-primary/40 text-primary px-5 py-2 text-xs font-black hover:bg-primary/20 transition-all font-mono uppercase tracking-wider flex items-center gap-2"
-                    >
-                        REGISTER
-                        <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    {isAuthenticated ? (
+                        <>
+                            <Link
+                                href={`/${currentLocale}/dashboard/overview`}
+                                className="text-xs font-black text-foreground/60 hover:text-primary transition-colors px-4 font-mono uppercase tracking-wider"
+                            >
+                                DASHBOARD
+                            </Link>
+                            <button
+                                onClick={handleLogout}
+                                className="tech-border bg-red-500/10 border-red-500/40 text-red-500 px-5 py-2 text-xs font-black hover:bg-red-500/20 transition-all font-mono uppercase tracking-wider flex items-center gap-2"
+                            >
+                                LOGOUT
+                                <LogOut className="w-3 h-3" />
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link href={`/${currentLocale}/login`} className="text-xs font-black text-foreground/60 hover:text-primary transition-colors px-4 font-mono uppercase tracking-wider">
+                                LOGIN
+                            </Link>
+                            <Link
+                                href={`/${currentLocale}/register`}
+                                className="tech-border bg-primary/10 border-primary/40 text-primary px-5 py-2 text-xs font-black hover:bg-primary/20 transition-all font-mono uppercase tracking-wider flex items-center gap-2"
+                            >
+                                REGISTER
+                                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </>
+                    )}
                 </div>
             </nav>
 
@@ -184,21 +206,42 @@ export default function Navbar({ locale }: NavbarProps) {
                                         EN
                                     </button>
                                 </div>
-                                <Link
-                                    href={`/${currentLocale}/login`}
-                                    className="tech-border bg-black/40 border-border/40 block px-4 py-3 text-xs font-black leading-7 text-foreground/80 hover:text-primary hover:border-primary/50 transition-colors font-mono uppercase tracking-wider"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    LOGIN
-                                </Link>
-                                <Link
-                                    href={`/${currentLocale}/register`}
-                                    className="w-full flex items-center justify-center gap-2 tech-border bg-primary/10 border-primary/40 px-4 py-3 text-xs font-black text-primary hover:bg-primary/20 transition-all font-mono uppercase tracking-wider"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    INITIALIZE
-                                    <ArrowRight className="w-3 h-3" />
-                                </Link>
+                                {isAuthenticated ? (
+                                    <>
+                                        <Link
+                                            href={`/${currentLocale}/dashboard/overview`}
+                                            className="tech-border bg-black/40 border-border/40 block px-4 py-3 text-xs font-black leading-7 text-foreground/80 hover:text-primary hover:border-primary/50 transition-colors font-mono uppercase tracking-wider"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            DASHBOARD
+                                        </Link>
+                                        <button
+                                            onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                                            className="w-full flex items-center justify-center gap-2 tech-border bg-red-500/10 border-red-500/40 px-4 py-3 text-xs font-black text-red-500 hover:bg-red-500/20 transition-all font-mono uppercase tracking-wider"
+                                        >
+                                            LOGOUT
+                                            <LogOut className="w-3 h-3" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Link
+                                            href={`/${currentLocale}/login`}
+                                            className="tech-border bg-black/40 border-border/40 block px-4 py-3 text-xs font-black leading-7 text-foreground/80 hover:text-primary hover:border-primary/50 transition-colors font-mono uppercase tracking-wider"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            LOGIN
+                                        </Link>
+                                        <Link
+                                            href={`/${currentLocale}/register`}
+                                            className="w-full flex items-center justify-center gap-2 tech-border bg-primary/10 border-primary/40 px-4 py-3 text-xs font-black text-primary hover:bg-primary/20 transition-all font-mono uppercase tracking-wider"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            INITIALIZE
+                                            <ArrowRight className="w-3 h-3" />
+                                        </Link>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
