@@ -13,6 +13,9 @@ export default function ApiKeysPage() {
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
 
+    const [showKeyModal, setShowKeyModal] = useState(false);
+    const [newKey, setNewKey] = useState<any>(null);
+
     useEffect(() => {
         fetchKeys();
     }, []);
@@ -34,6 +37,8 @@ export default function ApiKeysPage() {
             const name = `Clé ${new Date().toLocaleDateString()}`;
             const response = await api.post("/api-keys", { name, environment: 'live' });
             setKeys([response.data, ...keys]);
+            setNewKey(response.data);
+            setShowKeyModal(true);
             toast.success("Nouvelle clé API générée");
         } catch (err) {
             toast.error("Erreur lors de la création de la clé");
@@ -62,7 +67,50 @@ export default function ApiKeysPage() {
     };
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-10 relative">
+            {showKeyModal && newKey && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="tech-border bg-black w-full max-w-lg p-8 shadow-2xl shadow-primary/20">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-3 bg-primary/10 border border-primary/30 rounded-none">
+                                <Key size={24} className="text-primary animate-pulse" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-foreground font-mono uppercase tracking-widest">CLÉ GÉNÉRÉE</h3>
+                                <p className="text-xs text-red-500 font-mono mt-1 font-bold">ATTENTION : VISIBLE UNE SEULE FOIS</p>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-zinc-900/50 border border-border/50 p-4 mb-6 relative group">
+                            <code className="text-sm font-mono text-primary break-all block pr-8">
+                                {newKey.key}
+                            </code>
+                            <button
+                                onClick={() => copyToClipboard(newKey.key, 'modal-copy')}
+                                className="absolute top-2 right-2 p-2 hover:bg-white/10 rounded transition-colors"
+                            >
+                                {copiedId === 'modal-copy' ? <CheckCircle2 size={16} className="text-green-500" /> : <Copy size={16} className="text-foreground/60" />}
+                            </button>
+                        </div>
+
+                        <div className="flex items-start gap-3 bg-red-500/5 border border-red-500/20 p-4 mb-8">
+                            <ShieldCheck size={20} className="text-red-500 shrink-0 mt-0.5" />
+                            <p className="text-xs text-foreground/80 font-mono leading-relaxed">
+                                Veuillez copier cette clé maintenant et la stocker en lieu sûr. 
+                                Pour des raisons de sécurité, nous ne pourrons plus jamais l'afficher. 
+                                Si vous la perdez, vous devrez en générer une nouvelle.
+                            </p>
+                        </div>
+
+                        <button 
+                            onClick={() => setShowKeyModal(false)}
+                            className="w-full py-4 bg-primary text-black font-black font-mono uppercase tracking-widest hover:bg-primary/90 transition-colors"
+                        >
+                            J'AI COPIÉ MA CLÉ
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
@@ -112,21 +160,12 @@ export default function ApiKeysPage() {
                                 </td>
                                 <td className="px-4 py-4">
                                     <div className="flex items-center gap-2 max-w-[300px]">
-                                        <code className="text-xs font-mono bg-black/60 px-2 py-1 border border-border/50 text-foreground/80 truncate">
-                                            {showKeyId === key._id ? (key.key || `${key.keyPrefix}********************`) : `${key.keyPrefix}********************`}
+                                        <code className="text-xs font-mono bg-black/60 px-2 py-1 border border-border/50 text-foreground/40 truncate select-none cursor-not-allowed" title="Clé masquée par sécurité">
+                                            {`${key.keyPrefix}********************`}
                                         </code>
-                                        <button
-                                            onClick={() => setShowKeyId(showKeyId === key._id ? null : key._id)}
-                                            className="p-1 hover:text-primary transition-colors text-foreground/40"
-                                        >
-                                            {showKeyId === key._id ? <EyeOff size={12} /> : <Eye size={12} />}
-                                        </button>
-                                        <button
-                                            onClick={() => copyToClipboard(key.key || `${key.keyPrefix}********************`, key._id)}
-                                            className="p-1 hover:text-primary transition-colors text-foreground/40 relative"
-                                        >
-                                            {copiedId === key._id ? <CheckCircle2 size={12} className="text-primary" /> : <Copy size={12} />}
-                                        </button>
+                                        <div className="text-[10px] text-foreground/30 font-mono italic px-2">
+                                            Masquée
+                                        </div>
                                     </div>
                                 </td>
                                 <td className="px-4 py-4 text-xs text-foreground/60 font-mono">
