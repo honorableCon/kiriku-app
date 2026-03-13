@@ -21,8 +21,8 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 import { getUsageStats } from "@/lib/resources-ext";
-import { getCurrentUser } from "@/lib/resources";
-import type { UsageStats, User } from "@/types";
+import { getCurrentUser, getPlans } from "@/lib/resources";
+import type { UsageStats, User, Plan } from "@/types";
 import { useLocale } from "next-intl";
 
 const navigation = [
@@ -43,6 +43,7 @@ export default function Sidebar() {
     const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
     const [isLoadingStats, setIsLoadingStats] = useState(true);
     const [user, setUser] = useState<User | null>(null);
+    const [plans, setPlans] = useState<Plan[]>([]);
 
     const withLocale = (href: string) => {
         if (!href.startsWith("/")) return `/${locale}/${href}`;
@@ -68,6 +69,19 @@ export default function Sidebar() {
         };
 
         fetchUsageStats();
+    }, []);
+
+    useEffect(() => {
+        const fetchPlans = async () => {
+            try {
+                const plansData = await getPlans();
+                setPlans(plansData);
+            } catch (error) {
+                console.error("Failed to fetch plans:", error);
+            }
+        };
+
+        fetchPlans();
     }, []);
 
     useEffect(() => {
@@ -160,7 +174,7 @@ export default function Sidebar() {
                                         user?.credits === 0 ? "bg-destructive" : "bg-primary"
                                     )}
                                     style={{
-                                        width: user?.credits ? `${Math.min((user.credits / 1000) * 100, 100)}%` : "0%"
+                                        width: user?.credits ? `${Math.min((user.credits / (plans.find(p => p.id === user.plan)?.credits || 1000)) * 100, 100)}%` : "0%"
                                     }}
                                 />
                             </div>

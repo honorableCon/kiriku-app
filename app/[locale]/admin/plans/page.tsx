@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, Plus, Check, X, TrendingUp, TrendingDown, Zap, Edit } from "lucide-react";
+import { CreditCard, Plus, Check, X, TrendingUp, TrendingDown, Zap, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { getPlans, createPlan, updatePlanStatus, syncPlanWithDexpay, updatePlan } from "@/lib/resources-ext";
+import { getPlans, createPlan, updatePlanStatus, syncPlanWithDexpay, updatePlan, deletePlan } from "@/lib/resources-ext";
 import type { Plan } from "@/types";
 
 export default function PlansPage() {
@@ -170,6 +170,20 @@ export default function PlansPage() {
     }
   };
 
+  const handleDeletePlan = async (planId: string, planName: string) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer définitivement le plan "${planName}" ? Cette action est irréversible.`)) {
+      return;
+    }
+    
+    try {
+      await deletePlan(planId);
+      toast.success("Plan supprimé avec succès");
+      fetchPlans();
+    } catch (error) {
+      toast.error("Erreur lors de la suppression du plan");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -241,7 +255,8 @@ export default function PlansPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                {/* Bouton de toggle placé avec un z-index plus élevé pour être accessible même quand le plan est désactivé */}
+                <div className="flex items-center gap-1 relative z-20">
                   <button
                     onClick={() => handleToggleActive(plan.id, plan.isActive)}
                     className={cn(
@@ -324,12 +339,18 @@ export default function PlansPage() {
               <div className="pt-1 text-[10px] text-foreground/50 font-mono">
                 CREDIT_COST: {plan.creditCost ?? 0}
               </div>
-              <div className="pt-3 flex justify-end">
+              <div className="pt-3 flex justify-end gap-2">
                 <button
                   onClick={() => setEditingPlan(plan)}
                   className="text-[10px] text-foreground/70 hover:text-foreground font-mono uppercase tracking-wider flex items-center gap-1"
                 >
                   <Edit size={12} /> EDIT
+                </button>
+                <button
+                  onClick={() => handleDeletePlan(plan.id, plan.name)}
+                  className="text-[10px] text-red-500/70 hover:text-red-500 font-mono uppercase tracking-wider flex items-center gap-1"
+                >
+                  <Trash2 size={12} /> SUPPRIMER
                 </button>
               </div>
             </div>

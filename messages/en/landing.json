@@ -1,15 +1,15 @@
 {
   "hero": {
-    "status": "System_Online :: v2.4.0",
+    "status": "System_Online :: v2.0.0",
     "title": {
       "line1": "Identity",
       "line2": "Intelligence",
-      "line3": "Protocol"
+      "line3": "For_Everyone"
     },
-    "description": "Advanced KYC infrastructure for West African fintechs. Neural OCR extraction, fraud detection, and biometric verification via a unified API gateway.",
+    "description": "Advanced identity verification solution for all businesses. Neural OCR extraction, fraud detection, and document verification via a unified and easy-to-use API.",
     "buttons": {
-      "primary": "Initialize_Access",
-      "secondary": "Read_Documentation"
+      "primary": "Get_Started",
+      "secondary": "View_Docs"
     }
   },
   "stats": {
@@ -34,28 +34,28 @@
     "title": "Trusted_By_Industry_Leaders"
   },
   "features": {
-    "title": "Core_Capabilities",
-    "subtitle": "Digital Identity Suite",
-    "description": "Engineered for the specific challenges of the African market.",
+    "title": "Key_Features",
+    "subtitle": "Complete Verification Solution",
+    "description": "Designed to meet the needs of all industries and business sizes.",
     "models": {
-      "title": "LOCAL_MODELS",
-      "description": "Neural networks trained on thousands of UEMOA documents for unmatched precision on local ID cards and passports."
+      "title": "Advanced_Recognition",
+      "description": "State-of-the-art neural OCR technology for accurate data extraction from all types of identity documents."
     },
     "fraud": {
-      "title": "FRAUD_DETECTION",
-      "description": "Automated analysis of image tampering, photocopies, and MRZ consistency checks."
+      "title": "Built-In_Security",
+      "description": "Automatic tampering detection, authenticity verification, and protection against document fraud."
     },
     "sovereignty": {
-      "title": "DATA_SOVEREIGNTY",
-      "description": "Infrastructure deployed locally or compliant with CDP regulations. Your user data remains secure."
+      "title": "Total_Flexibility",
+      "description": "Cloud or on-premise deployment, adaptable to your specific needs and compliant with regulations."
     }
   },
   "cta": {
-    "title": "Ready to Integrate?",
-    "description": "Get your API keys in 2 minutes. 100 free extractions included.",
+    "title": "Ready to Start?",
+    "description": "Get your API keys instantly. Free trial with 100 verifications included.",
     "buttons": {
-      "primary": "Create_Account",
-      "secondary": "Contact_Sales"
+      "primary": "Try_Free",
+      "secondary": "View_Pricing"
     }
   }
 }

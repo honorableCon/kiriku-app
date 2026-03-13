@@ -44,9 +44,9 @@ export default function PlaygroundPage() {
     const [result, setResult] = useState<PlaygroundResult | null>(null);
     const [frontFile, setFrontFile] = useState<File | null>(null);
     const [backFile, setBackFile] = useState<File | null>(null);
-    const [fraudCheck, setFraudCheck] = useState(true);
+    const [fraudCheck, setFraudCheck] = useState(false);
     const [returnRawText, setReturnRawText] = useState(false);
-    const [returnConfidence, setReturnConfidence] = useState(true);
+    const [returnConfidence, setReturnConfidence] = useState(false);
     const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
     const [targetMobileFile, setTargetMobileFile] = useState<'front' | 'back'>('front');
 

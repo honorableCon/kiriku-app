@@ -18,6 +18,7 @@ export default function BillingPage() {
     const [plans, setPlans] = useState<Plan[]>([]);
     const [activeSubscription, setActiveSubscription] = useState<Subscription | null>(null);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [showAllInvoices, setShowAllInvoices] = useState(false);
     const [isPlansLoading, setIsPlansLoading] = useState(true);
     const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
     const [showPhoneModal, setShowPhoneModal] = useState(false);
@@ -131,14 +132,13 @@ export default function BillingPage() {
 
     const activePlans = plans.filter((plan) => plan.isActive);
     const subscriptionPlans = activePlans.filter(
-        (plan) => plan.type === "subscription" && plan.id !== "free" && plan.interval === billingInterval
+        (plan) => plan.type === "subscription" && plan.interval === billingInterval
     );
     const creditPacks = activePlans.filter((plan) => plan.type === "pack");
     const hasYearlyPlans = activePlans.some(
         (plan) => plan.type === "subscription" && plan.interval === "year"
     );
 
-    const currentPlanDetails = plans.find(p => p.id === activeSubscription?.planId);
 
     return (
         <div className="space-y-8 pb-12">
@@ -169,55 +169,37 @@ export default function BillingPage() {
                 </div>
             </div>
 
-            {/* Active Subscription Section */}
-            {activeSubscription && (
-                <div className="tech-border bg-black/40 border-primary/20 p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-2">
-                            <Shield size={16} className="text-primary" />
-                            <span className="text-xs font-mono text-primary/80 uppercase tracking-widest">ACTIVE_SUBSCRIPTION</span>
-                        </div>
-                        <div className={`px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-wider border ${
-                            activeSubscription.status === 'active' ? 'bg-green-500/10 border-green-500 text-green-500' :
-                            activeSubscription.status === 'cancelled' ? 'bg-yellow-500/10 border-yellow-500 text-yellow-500' :
-                            'bg-red-500/10 border-red-500 text-red-500'
-                        }`}>
-                            {activeSubscription.status}
-                        </div>
+            {/* Current Plan Highlight in Subscription Section */}
+            {/* {user?.plan && (
+                <div className="tech-border bg-primary/5 border-primary/40 p-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-primary animate-pulse rounded-full"></div>
+                        <span className="text-xs font-mono text-primary uppercase tracking-widest">
+                            PLAN ACTUEL
+                        </span>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <p className="text-[10px] text-foreground/50 font-mono uppercase tracking-widest mb-1">PLAN</p>
-                            <p className="text-lg font-bold text-foreground font-mono uppercase">{currentPlanDetails?.name || activeSubscription.planId}</p>
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-foreground/50 font-mono uppercase tracking-widest mb-1">RENEWAL</p>
-                            <p className="text-lg font-bold text-foreground font-mono uppercase">
-                                {activeSubscription.status === 'active' ? format(new Date(activeSubscription.endDate), 'dd MMM yyyy', { locale: fr }) : 'NON'}
-                            </p>
-                        </div>
-                        <div className="flex items-center justify-end">
-                            {activeSubscription.status === 'active' && (
-                                <button 
-                                    onClick={handleCancelSubscription}
-                                    disabled={isCancelling}
-                                    className="px-4 py-2 text-xs font-bold font-mono uppercase tracking-wider text-red-500 hover:bg-red-500/10 border border-red-500/30 transition-colors"
-                                >
-                                    {isCancelling ? 'Processing...' : 'Cancel Subscription'}
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                    <p className="text-sm font-black text-foreground font-mono uppercase mt-1">
+                        {user.plan.toUpperCase()}
+                    </p>
                 </div>
-            )}
+            )} */}
 
             {/* Invoices Section */}
             {invoices.length > 0 && (
                 <div className="tech-border bg-black/40 border-primary/20 p-6">
-                    <div className="flex items-center gap-2 mb-6">
-                        <FileText size={16} className="text-primary" />
-                        <span className="text-xs font-mono text-primary/80 uppercase tracking-widest">INVOICE_HISTORY</span>
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2">
+                            <FileText size={16} className="text-primary" />
+                            <span className="text-xs font-mono text-primary/80 uppercase tracking-widest">FACTURES_RÉCENTES</span>
+                        </div>
+                        {!showAllInvoices && invoices.length > 3 && (
+                            <button
+                                onClick={() => setShowAllInvoices(true)}
+                                className="text-[10px] text-primary/80 hover:text-primary font-mono uppercase tracking-wider"
+                            >
+                                VOIR TOUT
+                            </button>
+                        )}
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -231,7 +213,7 @@ export default function BillingPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {invoices.map((inv) => (
+                                {(showAllInvoices ? invoices : invoices.slice(0, 3)).map((inv) => (
                                     <tr key={inv._id} className="border-b border-border/10 hover:bg-white/5 transition-colors text-xs font-mono">
                                         <td className="py-3 px-2 text-foreground/80">{inv.reference}</td>
                                         <td className="py-3 px-2 text-foreground/60">{format(new Date(inv.createdAt), 'dd MMM yyyy', { locale: fr })}</td>
@@ -301,7 +283,8 @@ export default function BillingPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {subscriptionPlans.map((plan) => {
                         const displayPeriod = billingInterval === 'year' ? '/AN' : '/MOIS';
-                        const isCurrentPlan = activeSubscription?.planId === plan.id && activeSubscription?.status === 'active';
+                        const isCurrentPlan = (activeSubscription?.planId === plan.id && activeSubscription?.status === 'active') || (user?.plan === plan.id && !activeSubscription);
+                        const isFreePlan = plan.price === 0;
 
                         return (
                             <div
@@ -318,11 +301,11 @@ export default function BillingPage() {
                                 <div className="flex items-center gap-2 mb-4 mt-2">
                                     <Zap size={16} className="text-primary animate-pulse" />
                                     <span className="text-[10px] font-mono text-foreground/50 uppercase tracking-widest">
-                                        SUBSCRIPTION
+                                        ABONNEMENT
                                     </span>
                                 </div>
                                 <h3 className="text-lg font-black text-foreground mb-2 font-mono uppercase tracking-wider">{plan.name}</h3>
-                                <p className="text-xs text-foreground/60 font-mono uppercase tracking-wider mb-4">
+                                <p className="text-xs text-foreground/60 mb-4">
                                     {plan.description}
                                 </p>
                                 <div className="flex items-end gap-1 mb-6">
@@ -333,10 +316,10 @@ export default function BillingPage() {
                                 <div className="space-y-2 mb-6">
                                     <div className="flex items-center gap-2 text-xs text-foreground/70 font-mono">
                                         <div className={`w-1 h-1 ${plan.id === 'growth' ? 'bg-primary animate-pulse' : 'bg-foreground/40'}`} />
-                                        <span>{plan.credits.toLocaleString()}_EXTRACTION_CREDITS</span>
+                                        <span>{plan.credits.toLocaleString()} crédits d'extraction</span>
                                     </div>
                                     {plan.features.slice(0, 3).map((feature, idx) => (
-                                        <div key={`${plan.id}-${idx}`} className="flex items-center gap-2 text-[10px] text-foreground/60 font-mono">
+                                        <div key={`${plan.id}-${idx}`} className="flex items-center gap-2 text-[10px] text-foreground/60">
                                             <div className={`w-1 h-1 ${plan.id === 'growth' ? 'bg-primary animate-pulse' : 'bg-foreground/40'}`} />
                                             <span>{feature}</span>
                                         </div>
@@ -344,26 +327,28 @@ export default function BillingPage() {
                                 </div>
                                 <button
                                     onClick={() => handleSubscribe(plan)}
-                                    disabled={!!isSubscribing || isCurrentPlan}
+                                    disabled={!!isSubscribing || isCurrentPlan || isFreePlan}
                                     className={`w-full py-3 text-sm font-black flex items-center justify-center gap-2 transition-all font-mono uppercase tracking-wider border ${
                                         isCurrentPlan 
                                         ? 'bg-green-500/10 border-green-500 text-green-500 cursor-default' 
+                                        : isFreePlan
+                                        ? 'bg-gray-500/10 border-gray-500 text-gray-500 cursor-default'
                                         : 'bg-primary/10 border-primary text-primary hover:bg-primary/20 disabled:opacity-50'
                                     }`}
                                 >
                                     {isCurrentPlan ? (
                                         <>
                                             <Check size={16} />
-                                            ACTIVE
+                                            ACTIF
                                         </>
                                     ) : isSubscribing === plan.id ? (
                                         <>
                                             <Loader2 size={16} className="animate-spin" />
-                                            PROCESSING
+                                            TRAITEMENT
                                         </>
                                     ) : (
                                         <>
-                                            {activeSubscription?.status === 'active' ? 'SWITCH PLAN' : 'UPGRADE'}
+                                            {activeSubscription?.status === 'active' ? 'CHANGER' : 'S\'ABONNER'}
                                             <ArrowRight size={14} />
                                         </>
                                     )}
