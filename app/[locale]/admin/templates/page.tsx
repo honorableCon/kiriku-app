@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { getTemplates, deleteTemplate } from "@/lib/resources";
 import type { Template } from "@/types";
 import { toast } from "sonner";
+import { TemplateModal } from "@/components/templates/TemplateModal";
 
 export default function AdminTemplatesPage() {
     const [templates, setTemplates] = useState<Template[]>([]);
@@ -13,17 +14,29 @@ export default function AdminTemplatesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState<"view" | "edit" | "create">("view");
+    const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+
+    const handleOpenModal = (mode: "view" | "edit" | "create", template?: Template) => {
+        setModalMode(mode);
+        setSelectedTemplate(template || null);
+        setIsModalOpen(true);
+    };
+
+    const fetchTemplates = async () => {
+        try {
+            const data = await getTemplates();
+            setTemplates(data);
+        } catch {
+            toast.error("Erreur lors du chargement des modèles");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchTemplates = async () => {
-            try {
-                const data = await getTemplates();
-                setTemplates(data);
-            } catch {
-                toast.error("Erreur lors du chargement des modèles");
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchTemplates();
     }, []);
 
@@ -57,7 +70,7 @@ export default function AdminTemplatesPage() {
                 <h1 className="text-2xl font-extrabold tracking-tight text-foreground font-mono uppercase">Document_Templates_Control</h1>
                 <p className="text-foreground/60 mt-1 font-mono text-xs">EXTRACTION_ENGINE // TEMPLATE_CONFIG</p>
                 <button
-                    onClick={() => toast.info("Création via UI: bientôt. Utilisez l'API pour le moment.")}
+                    onClick={() => handleOpenModal("create")}
                     className="tech-border bg-primary/20 border-primary/40 px-4 py-2 mt-4 text-xs font-black text-primary uppercase tracking-wider hover:bg-primary/30 hover:border-primary/60 transition-all font-mono flex items-center gap-2"
                 >
                     <Plus size={14} />NEW_TEMPLATE
@@ -146,14 +159,22 @@ export default function AdminTemplatesPage() {
                                         {template.fields.length} FIELDS
                                     </td>
                                     <td className="px-6 py-3 text-xs text-foreground/60 font-mono">
-                                        {template.usageCount.toLocaleString()}
+                                        {(template.usageCount || 0).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-3 text-right">
                                         <div className="flex items-center justify-end gap-1">
-                                            <button className="tech-border bg-black/60 border-border/40 p-2 text-foreground/40 hover:text-primary hover:border-primary/40 transition-all">
+                                            <button 
+                                                onClick={() => handleOpenModal("view", template)}
+                                                className="tech-border bg-black/60 border-border/40 p-2 text-foreground/40 hover:text-primary hover:border-primary/40 transition-all"
+                                                title="Voir les détails"
+                                            >
                                                 <Eye size={14} />
                                             </button>
-                                            <button className="tech-border bg-black/60 border-border/40 p-2 text-foreground/40 hover:text-primary hover:border-primary/40 transition-all">
+                                            <button 
+                                                onClick={() => handleOpenModal("edit", template)}
+                                                className="tech-border bg-black/60 border-border/40 p-2 text-foreground/40 hover:text-primary hover:border-primary/40 transition-all"
+                                                title="Modifier le modèle"
+                                            >
                                                 <Edit size={14} />
                                             </button>
                                             {!template.isBuiltin && (
@@ -216,6 +237,14 @@ export default function AdminTemplatesPage() {
                     </pre>
                 </div>
             </div>
+
+            <TemplateModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                mode={modalMode}
+                template={selectedTemplate}
+                onSuccess={() => fetchTemplates()}
+            />
         </div>
     );
 }

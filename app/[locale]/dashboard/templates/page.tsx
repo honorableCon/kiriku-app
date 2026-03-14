@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { getTemplates, deleteTemplate } from "@/lib/resources";
 import type { Template } from "@/types";
 import { toast } from "sonner";
+import { TemplateModal } from "@/components/templates/TemplateModal";
 
 export default function TemplatesPage() {
     const router = useRouter();
@@ -16,6 +17,11 @@ export default function TemplatesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState<"view" | "edit" | "create">("view");
+    const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
 
     useEffect(() => {
         if (status === "loading") return;
@@ -31,17 +37,24 @@ export default function TemplatesPage() {
         router.replace("/admin/templates");
     }, [status, session, router]);
 
+    const handleOpenModal = (mode: "view" | "edit" | "create", template?: Template) => {
+        setModalMode(mode);
+        setSelectedTemplate(template || null);
+        setIsModalOpen(true);
+    };
+
+    const fetchTemplates = async () => {
+        try {
+            const data = await getTemplates();
+            setTemplates(data);
+        } catch (err) {
+            toast.error("Erreur lors du chargement des modèles");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchTemplates = async () => {
-            try {
-                const data = await getTemplates();
-                setTemplates(data);
-            } catch (err) {
-                toast.error("Erreur lors du chargement des modèles");
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchTemplates();
     }, []);
 
@@ -72,7 +85,10 @@ export default function TemplatesPage() {
                     <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Modèles de Documents</h1>
                     <p className="text-foreground/60 mt-1">Configurez les modèles pour l'extraction de vos documents.</p>
                 </div>
-                <button className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center gap-2">
+                <button 
+                    onClick={() => handleOpenModal("create")}
+                    className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center gap-2"
+                >
                     <Plus size={18} /> Nouveau Modèle
                 </button>
             </div>
@@ -159,14 +175,22 @@ export default function TemplatesPage() {
                                         {template.fields.length} champs
                                     </td>
                                     <td className="px-6 py-4 text-sm text-foreground/60">
-                                        {template.usageCount.toLocaleString()}
+                                        {(template.usageCount || 0).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-1">
-                                            <button className="p-2 text-foreground/40 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
+                                            <button 
+                                                onClick={() => handleOpenModal("view", template)}
+                                                className="p-2 text-foreground/40 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                                                title="Voir les détails"
+                                            >
                                                 <Eye size={16} />
                                             </button>
-                                            <button className="p-2 text-foreground/40 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
+                                            <button 
+                                                onClick={() => handleOpenModal("edit", template)}
+                                                className="p-2 text-foreground/40 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                                                title="Modifier le modèle"
+                                            >
                                                 <Edit size={16} />
                                             </button>
                                             {!template.isBuiltin && (
@@ -229,6 +253,14 @@ export default function TemplatesPage() {
                     </pre>
                 </div>
             </div>
+
+            <TemplateModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                mode={modalMode}
+                template={selectedTemplate}
+                onSuccess={() => fetchTemplates()}
+            />
         </div>
     );
 }
