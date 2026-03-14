@@ -4,14 +4,16 @@ import { useState, useEffect, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { X, Smartphone, Loader2, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 interface MobileScanModalProps {
     isOpen: boolean;
     onClose: () => void;
     onFileReceived: (file: File) => void;
+    onFilesReceived?: (frontFile: File, backFile?: File) => void;
 }
 
-export default function MobileScanModal({ isOpen, onClose, onFileReceived }: MobileScanModalProps) {
+export default function MobileScanModal({ isOpen, onClose, onFileReceived, onFilesReceived }: MobileScanModalProps) {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [status, setStatus] = useState<'loading' | 'waiting' | 'uploaded' | 'consuming' | 'error'>('loading');
     const [error, setError] = useState<string | null>(null);
@@ -47,19 +49,57 @@ export default function MobileScanModal({ isOpen, onClose, onFileReceived }: Mob
                 responseType: 'blob',
             });
             
-            // Extract filename from header or default
+            const hasBackFile = response.headers['x-has-back-file'] === 'true';
+            
             const contentDisposition = response.headers['content-disposition'];
-            let filename = 'mobile-upload.jpg';
+            let frontFilename = 'mobile-upload.jpg';
             if (contentDisposition) {
                 const match = contentDisposition.match(/filename="?([^"]+)"?/);
-                if (match && match[1]) filename = match[1];
+                if (match && match[1]) frontFilename = match[1];
             }
 
-            const file = new File([response.data], filename, {
+            const frontFile = new File([response.data], frontFilename, {
                 type: response.headers['content-type'] || 'image/jpeg',
             });
 
-            onFileReceived(file);
+            if (hasBackFile && onFilesReceived) {
+                try {
+                    const backResponse = await api.get(`/mobile-handoff/consume/${sid}?side=back`, {
+                        responseType: 'blob',
+                    });
+                    
+                    const backContentDisposition = backResponse.headers['content-disposition'];
+                    let backFilename = 'mobile-upload-back.jpg';
+                    if (backContentDisposition) {
+                        const match = backContentDisposition.match(/filename="?([^"]+)"?/);
+                        if (match && match[1]) backFilename = match[1];
+                    }
+
+                    const backFile = new File([backResponse.data], backFilename, {
+                        type: backResponse.headers['content-type'] || 'image/jpeg',
+                    });
+
+                    onFilesReceived(frontFile, backFile);
+                    toast.success("Documents reçus avec succès !", {
+                        description: "Recto et verso disponibles pour l'extraction.",
+                        duration: 3000,
+                    });
+                } catch (backErr) {
+                    console.error("Error fetching back file", backErr);
+                    onFilesReceived(frontFile);
+                    toast.success("Document reçu avec succès !", {
+                        description: "Vous pouvez maintenant lancer l'extraction.",
+                        duration: 3000,
+                    });
+                }
+            } else {
+                onFileReceived(frontFile);
+                toast.success("Document reçu avec succès !", {
+                    description: "Vous pouvez maintenant lancer l'extraction.",
+                    duration: 3000,
+                });
+            }
+            
             onClose();
         } catch (err) {
             console.error("Consume error", err);

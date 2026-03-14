@@ -136,6 +136,10 @@ export default function PlaygroundPage() {
                         if (targetMobileFile === 'front') setFrontFile(file);
                         else setBackFile(file);
                     }}
+                    onFilesReceived={(frontFile, backFile) => {
+                        setFrontFile(frontFile);
+                        if (backFile) setBackFile(backFile);
+                    }}
                 />
             )}
 
