@@ -198,27 +198,27 @@ export default function PlaygroundPage() {
                                 <button
                                     onClick={() => setReturnConfidence((v) => !v)}
                                     className={cn(
-                                        "w-full flex items-center justify-between px-4 py-2 border text-xs font-bold transition-all",
-                                        returnConfidence 
-                                            ? "border-primary bg-primary/5 text-primary" 
-                                            : "border-border bg-transparent text-foreground/40 hover:border-foreground/20"
+                                        "w-full flex items-center justify-between px-4 py-2 border text-xs font-bold transition-all opacity-50 cursor-not-allowed",
+                                        "border-border bg-transparent text-foreground/20"
                                     )}
+                                    disabled
+                                    title="CONFIDENCE_METRICS temporairement désactivé - Disponible prochainement"
                                 >
                                     <span className="flex items-center gap-2"><Activity size={14} /> CONFIDENCE_METRICS</span>
-                                    <span>{returnConfidence ? "ON" : "OFF"}</span>
+                                    <span>OFF</span>
                                 </button>
 
                                 <button
                                     onClick={() => setReturnRawText((v) => !v)}
                                     className={cn(
-                                        "w-full flex items-center justify-between px-4 py-2 border text-xs font-bold transition-all",
-                                        returnRawText 
-                                            ? "border-primary bg-primary/5 text-primary" 
-                                            : "border-border bg-transparent text-foreground/40 hover:border-foreground/20"
+                                        "w-full flex items-center justify-between px-4 py-2 border text-xs font-bold transition-all opacity-50 cursor-not-allowed",
+                                        "border-border bg-transparent text-foreground/20"
                                     )}
+                                    disabled
+                                    title="RAW_DATA_STREAM temporairement désactivé - Disponible prochainement"
                                 >
                                     <span className="flex items-center gap-2"><FileText size={14} /> RAW_DATA_STREAM</span>
-                                    <span>{returnRawText ? "ON" : "OFF"}</span>
+                                    <span>OFF</span>
                                 </button>
                             </div>
                         </div>
