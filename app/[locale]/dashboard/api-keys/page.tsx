@@ -15,6 +15,8 @@ export default function ApiKeysPage() {
 
     const [showKeyModal, setShowKeyModal] = useState(false);
     const [newKey, setNewKey] = useState<any>(null);
+    const [keyName, setKeyName] = useState('');
+    const [showNameInput, setShowNameInput] = useState(false);
 
     useEffect(() => {
         fetchKeys();
@@ -32,13 +34,20 @@ export default function ApiKeysPage() {
     };
 
     const createKey = async () => {
+        if (showNameInput && !keyName.trim()) {
+            toast.error("Veuillez saisir un nom pour la clé API");
+            return;
+        }
+        
         setIsCreating(true);
         try {
-            const name = `Clé ${new Date().toLocaleDateString()}`;
+            const name = keyName.trim() || `Clé ${new Date().toLocaleDateString()}`;
             const response = await api.post("/api-keys", { name, environment: 'live' });
             setKeys([response.data, ...keys]);
             setNewKey(response.data);
             setShowKeyModal(true);
+            setKeyName('');
+            setShowNameInput(false);
             toast.success("Nouvelle clé API générée");
         } catch (err) {
             toast.error("Erreur lors de la création de la clé");
@@ -120,14 +129,38 @@ export default function ApiKeysPage() {
                     <h1 className="text-4xl font-black tracking-tight text-foreground font-mono">API_KEYS_CONTROL</h1>
                     <p className="text-foreground/50 mt-2 font-mono text-xs tracking-wide">ACCESS_TOKEN_MANAGEMENT</p>
                 </div>
-                <button 
-                    onClick={createKey}
-                    disabled={isCreating}
-                    className="flex items-center gap-2 px-6 py-3 border border-primary text-primary hover:bg-primary hover:text-black font-bold font-mono text-xs uppercase tracking-wider transition-all disabled:opacity-50"
-                >
-                    {isCreating ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} 
-                    GENERATE_KEY
-                </button>
+                <div className="flex flex-col gap-2">
+                    {showNameInput && (
+                        <div className="flex items-center gap-2 mb-2">
+                            <input
+                                type="text"
+                                value={keyName}
+                                onChange={(e) => setKeyName(e.target.value)}
+                                placeholder="Nom de la clé API"
+                                className="px-3 py-2 border border-border bg-black/50 text-foreground text-xs font-mono placeholder:text-foreground/30 focus:outline-none focus:border-primary transition-colors w-48"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') createKey();
+                                    if (e.key === 'Escape') setShowNameInput(false);
+                                }}
+                            />
+                            <button
+                                onClick={() => setShowNameInput(false)}
+                                className="px-2 py-2 border border-border text-foreground/40 hover:text-foreground hover:border-foreground/30 text-xs font-mono transition-colors"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    )}
+                    <button 
+                        onClick={() => showNameInput ? createKey() : setShowNameInput(true)}
+                        disabled={isCreating}
+                        className="flex items-center gap-2 px-6 py-3 border border-primary text-primary hover:bg-primary hover:text-black font-bold font-mono text-xs uppercase tracking-wider transition-all disabled:opacity-50"
+                    >
+                        {isCreating ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} 
+                        {showNameInput ? 'CONFIRMER' : 'GENERATE_KEY'}
+                    </button>
+                </div>
             </div>
 
             <div className="tech-border bg-black/40 overflow-hidden">
