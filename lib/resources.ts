@@ -19,6 +19,31 @@ export async function getPlans(): Promise<Plan[]> {
     }
 }
 
+export async function getPublicPlans(): Promise<Plan[]> {
+    try {
+        // Use standard fetch to bypass axios interceptors that might attach tokens
+        // and trigger a 401 redirect loop
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3009/v1';
+        const response = await fetch(`${apiUrl}/plans/public`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            // next: { revalidate: 3600 } // Cache for 1 hour if using App Router Server Components
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.plans;
+    } catch (error) {
+        console.error("Failed to fetch public plans", error);
+        return [];
+    }
+}
+
 export async function updateUser(data: Partial<User>): Promise<User> {
     try {
         const response = await api.put<User>('/users/me', data);

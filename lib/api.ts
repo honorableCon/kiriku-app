@@ -81,7 +81,10 @@ api.interceptors.response.use(
             originalRequest._retry = true;
             sessionTokenCache = null;
             useAuthStore.getState().logout();
-            if (typeof window !== 'undefined') {
+            
+            // Only redirect to login if the request was meant to be authenticated
+            // For public endpoints like /plans, we just want to fail silently or let the caller handle it
+            if (typeof window !== 'undefined' && !originalRequest.url?.includes('/plans')) {
                 window.location.href = '/login';
             }
         }

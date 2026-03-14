@@ -1,64 +1,116 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Check, MoveRight, Zap, Cpu, Database, Shield } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-
-const plans = [
-    {
-        name: "Gratuit",
-        price: "0 FCFA",
-        description: "Parfait pour tester Kiriku et monter en compétence.",
-        features: [
-            "50 extractions / jour",
-            // "PaddleOCR (Self-hosted)",
-            "Templates Built-in uniquement",
-            "Support via Discord",
-            "Communauté active",
-        ],
-        cta: "Commencer gratuitement",
-        href: "/register",
-        popular: false,
-        icon: Cpu,
-    },
-    {
-        name: "Growth",
-        price: "25,000 FCFA",
-        period: "/mois",
-        description: "Pour les startups et entreprises en pleine croissance.",
-        features: [
-            "2,500 extractions / mois",
-            // "Gemini Flash 2.0 & Google Vision",
-            "Templates Custom illimités",
-            "Détection de fraude de base",
-            "Support Prioritaire",
-            "Webhooks",
-        ],
-        cta: "Essayer 14 jours",
-        href: "/register",
-        popular: true,
-        icon: Database,
-    },
-    {
-        name: "Enterprise",
-        price: "Sur mesure",
-        description: "Solution complète pour les grands volumes et KYC complexes.",
-        features: [
-            "Volume illimité",
-            "SLA 99.9%",
-            "Détection de fraude avancée",
-            "Intégration sur site possible",
-            "Account Manager dédié",
-            "Analyses personnalisées",
-        ],
-        cta: "Contacter l'équipe",
-        href: "/contact",
-        popular: false,
-        icon: Shield,
-    },
-];
+import { getPublicPlans } from "@/lib/resources";
+import type { Plan } from "@/types";
+import { toast } from "sonner";
 
 export default function PricingPage() {
+    const [apiPlans, setApiPlans] = useState<Plan[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchPlans = async () => {
+            try {
+                const fetchedPlans = await getPublicPlans();
+                setApiPlans(fetchedPlans);
+            } catch (error) {
+                toast.error("Impossible de charger les plans depuis le serveur");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchPlans();
+    }, []);
+
+    // Filter and map plans
+    const subscriptionPlans = apiPlans.length > 0 
+        ? apiPlans
+            .filter(plan => plan.type === "subscription")
+            .map((plan) => {
+                const isFree = plan.price === 0;
+                const isGrowth = plan.name.toLowerCase().includes("pro"); // Pro is the popular one in the new data
+                
+                return {
+                    id: plan.id,
+                    name: plan.name,
+                    price: isFree ? "0 FCFA" : `${plan.price.toLocaleString()} ${plan.currency}`,
+                    period: plan.interval === "month" ? "/mois" : plan.interval === "year" ? "/an" : "",
+                    description: plan.description,
+                    features: plan.features || [],
+                    cta: isFree ? "Commencer gratuitement" : "Essayer 14 jours",
+                    href: "/register",
+                    popular: isGrowth,
+                    icon: isFree ? Cpu : (isGrowth ? Database : Shield),
+                };
+            }) 
+        : [
+            // Fallback plans
+            {
+                name: "Gratuit",
+                price: "0 FCFA",
+                description: "Parfait pour tester Kiriku et monter en compétence.",
+                features: [
+                    "50 extractions / jour",
+                    "Templates Built-in uniquement",
+                    "Support via Discord",
+                    "Communauté active",
+                ],
+                cta: "Commencer gratuitement",
+                href: "/register",
+                popular: false,
+                icon: Cpu,
+            },
+            {
+                name: "Growth",
+                price: "25,000 FCFA",
+                period: "/mois",
+                description: "Pour les startups et entreprises en pleine croissance.",
+                features: [
+                    "2,500 extractions / mois",
+                    "Templates Custom illimités",
+                    "Détection de fraude de base",
+                    "Support Prioritaire",
+                    "Webhooks",
+                ],
+                cta: "Essayer 14 jours",
+                href: "/register",
+                popular: true,
+                icon: Database,
+            },
+            {
+                name: "Enterprise",
+                price: "Sur mesure",
+                description: "Solution complète pour les grands volumes et KYC complexes.",
+                features: [
+                    "Volume illimité",
+                    "SLA 99.9%",
+                    "Détection de fraude avancée",
+                    "Intégration sur site possible",
+                    "Account Manager dédié",
+                    "Analyses personnalisées",
+                ],
+                cta: "Contacter l'équipe",
+                href: "/contact",
+                popular: false,
+                icon: Shield,
+            }
+        ];
+
+    const packPlans = apiPlans.filter(plan => plan.type === "pack").map(plan => ({
+        id: plan.id,
+        name: plan.name,
+        price: `${plan.price.toLocaleString()} ${plan.currency}`,
+        description: plan.description,
+        features: plan.features || [],
+        cta: "Acheter maintenant",
+        href: "/register",
+        credits: plan.credits
+    }));
+
     return (
         <div className="bg-black min-h-screen py-24 sm:py-32">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -74,7 +126,11 @@ export default function PricingPage() {
                     </p>
                 </div>
                 <div className="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-6 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-6">
-                    {plans.map((plan) => (
+                    {isLoading ? (
+                        <div className="col-span-3 flex justify-center py-12">
+                            <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                        </div>
+                    ) : subscriptionPlans.map((plan) => (
                         <div
                             key={plan.name}
                             className={cn(
@@ -152,6 +208,74 @@ export default function PricingPage() {
                         </div>
                     ))}
                 </div>
+
+                {packPlans.length > 0 && (
+                    <div className="mt-24">
+                        <div className="mx-auto max-w-4xl text-center mb-12">
+                            <div className="tech-border bg-primary/10 border-primary/20 inline-block px-4 py-2 mb-6">
+                                <span className="text-[10px] font-black text-primary uppercase tracking-widest font-mono">CREDIT_PACKS</span>
+                            </div>
+                            <h2 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl font-mono uppercase mb-4">
+                                Packs de Crédits
+                            </h2>
+                            <p className="text-sm text-foreground/60 font-mono uppercase tracking-wider max-w-2xl mx-auto">
+                                Besoin de plus de crédits ponctuellement ? Optez pour nos packs sans engagement.
+                            </p>
+                        </div>
+
+                        <div className="isolate mx-auto grid max-w-md grid-cols-1 gap-6 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-6">
+                            {packPlans.map((pack) => (
+                                <div
+                                    key={pack.name}
+                                    className="flex flex-col justify-between tech-border bg-black/40 border-border/40 p-6 hover:border-primary/30 hover:bg-black/50 transition-all duration-300"
+                                >
+                                    <div>
+                                        <div className="flex items-center justify-between gap-x-4 mb-4">
+                                            <div className="tech-border bg-black/60 border-border/40 p-2">
+                                                <Zap size={20} className="text-foreground/60" />
+                                            </div>
+                                            <span className="tech-border bg-primary/10 border-primary/20 px-3 py-1 text-[10px] font-black text-primary uppercase tracking-wider font-mono">
+                                                {pack.credits.toLocaleString()} CREDITS
+                                            </span>
+                                        </div>
+                                        <h3 className="text-xl font-black text-foreground/80 uppercase tracking-wider font-mono mb-2">
+                                            {pack.name}
+                                        </h3>
+                                        <p className="text-xs text-foreground/60 font-mono uppercase tracking-wider mb-4">
+                                            {pack.description}
+                                        </p>
+                                        <div className="mb-6">
+                                            <p className="text-3xl font-black text-foreground tracking-tight font-mono uppercase">
+                                                {pack.price}
+                                            </p>
+                                            <p className="text-[10px] text-foreground/50 font-mono uppercase tracking-wider">
+                                                paiement unique
+                                            </p>
+                                        </div>
+                                        <ul className="space-y-3">
+                                            {pack.features.map((feature) => (
+                                                <li key={feature} className="flex gap-x-3 items-start">
+                                                    <div className="tech-border bg-black/60 border-border/40 p-1 mt-0.5">
+                                                        <Check size={12} className="text-foreground/60" />
+                                                    </div>
+                                                    <span className="text-xs text-foreground/70 font-mono uppercase tracking-wider">
+                                                        {feature}
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <Link
+                                        href={pack.href}
+                                        className="mt-8 block tech-border bg-black/60 text-foreground border-border/40 px-4 py-3 text-center text-xs font-black uppercase tracking-wider hover:border-primary/40 hover:text-primary transition-all font-mono hover:scale-[1.02]"
+                                    >
+                                        {pack.cta}
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 <div className="mt-20 tech-border bg-primary/5 border-primary/20 p-8">
                     <div className="flex flex-col items-center justify-center text-center">
