@@ -12,7 +12,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Cpu,
-    FileText
+    FileText,
+    Clock
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ const navigation = [
     { name: "BILLING_PLANS", href: "/admin/plans", icon: CreditCard },
     { name: "LEARNING", href: "/admin/learning", icon: Cpu },
     { name: "REVENUE", href: "/admin/revenue", icon: LayoutDashboard },
+    { name: "CRON_JOBS", href: "/admin/cron", icon: Clock },
     { name: "SYSTEM_LOGS", href: "/admin/logs", icon: ShieldAlert },
     { name: "SETTINGS", href: "/admin/settings", icon: Settings },
 ];
