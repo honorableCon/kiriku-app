@@ -17,13 +17,47 @@ export default function MobileUploadPage() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isHeicLike = (f: File) => {
+        const type = (f.type || "").toLowerCase();
+        const name = (f.name || "").toLowerCase();
+        return type.includes("heic") || type.includes("heif") || name.endsWith(".heic") || name.endsWith(".heif");
+    };
+
+    const convertHeicToJpeg = async (input: File): Promise<File> => {
+        const mod = await import("heic2any");
+        const heic2any = mod.default as unknown as (opts: {
+            blob: Blob;
+            toType: string;
+            quality?: number;
+        }) => Promise<Blob | Blob[]>;
+
+        const out = await heic2any({ blob: input, toType: "image/jpeg", quality: 0.9 });
+        const blob = Array.isArray(out) ? out[0] : out;
+
+        const name = input.name?.replace(/\.(heic|heif)$/i, ".jpg") || "mobile-upload.jpg";
+        // Ensure we pass the blob properly to File constructor
+        return new File([blob], name, { type: "image/jpeg", lastModified: Date.now() });
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
-            setFile(selectedFile);
-            const objectUrl = URL.createObjectURL(selectedFile);
-            setPreview(objectUrl);
             setError(null);
+
+            try {
+                const finalFile = isHeicLike(selectedFile)
+                    ? await convertHeicToJpeg(selectedFile)
+                    : selectedFile;
+
+                setFile(finalFile);
+                const objectUrl = URL.createObjectURL(finalFile);
+                setPreview(objectUrl);
+            } catch (err) {
+                console.error(err);
+                setFile(null);
+                setPreview(null);
+                setError("Format non supporté. Passez l’iPhone en “Plus compatible” (JPEG) ou envoyez un PNG/JPEG.");
+            }
         }
     };
 
@@ -41,6 +75,8 @@ export default function MobileUploadPage() {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
+                // Crucial: Prevent axios from stringifying the FormData
+                transformRequest: [(data) => data],
             });
             setIsSuccess(true);
         } catch (err: any) {

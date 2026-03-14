@@ -96,75 +96,75 @@ export default function MobileScanModal({ isOpen, onClose, onFileReceived }: Mob
     if (!isOpen) return null;
 
     const mobileUrl = sessionId 
-        ? `${window.location.protocol}//${window.location.host}/mobile/${sessionId}`
+        ? `${process.env.NEXTAUTH_URL}/mobile/${sessionId}`
         : '';
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm border border-border shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
-                <div className="p-4 border-b border-border flex items-center justify-between bg-accent/30">
-                    <h3 className="font-bold text-foreground flex items-center gap-2">
+            <div className="bg-background border border-border w-full max-w-sm overflow-hidden tech-border animate-in zoom-in-95 duration-200">
+                <div className="p-4 border-b border-border flex items-center justify-between bg-accent">
+                    <h3 className="font-bold text-foreground flex items-center gap-2 font-mono tracking-tight">
                         <Smartphone size={18} className="text-primary" />
-                        Scanner avec mobile
+                        SCAN_MOBILE
                     </h3>
                     <button 
                         onClick={onClose}
-                        className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors"
+                        className="p-1 hover:bg-primary/10 transition-colors tech-border"
                     >
-                        <X size={18} className="text-foreground/60" />
+                        <X size={18} className="text-primary" />
                     </button>
                 </div>
 
-                <div className="p-8 flex flex-col items-center text-center space-y-6">
+                <div className="p-6 flex flex-col items-center text-center space-y-6">
                     {status === 'loading' && (
                         <div className="flex flex-col items-center gap-4 py-8">
                             <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                            <p className="text-sm text-foreground/60">Préparation de la session...</p>
+                            <p className="text-sm text-foreground/60 font-mono tracking-tight">INITIALIZING_SESSION...</p>
                         </div>
                     )}
 
                     {status === 'waiting' && sessionId && (
                         <>
-                            <div className="bg-white p-4 rounded-xl shadow-sm border border-border/50">
+                            <div className="bg-accent p-4 tech-border">
                                 <QRCodeSVG value={mobileUrl} size={180} />
                             </div>
                             <div className="space-y-2">
-                                <p className="text-sm font-medium text-foreground">Scannez ce code avec votre téléphone</p>
-                                <p className="text-xs text-foreground/40">
-                                    Ou ouvrez ce lien: <br/>
-                                    <span className="font-mono text-[10px] bg-accent px-1 py-0.5 rounded text-foreground/60 select-all">
+                                <p className="text-sm font-medium text-foreground font-mono tracking-tight">SCAN_QR_CODE</p>
+                                <p className="text-xs text-foreground/40 font-mono">
+                                    ALT_URL: <br/>
+                                    <span className="font-mono text-[10px] bg-accent px-1 py-0.5 text-foreground/60 select-all border border-border">
                                         {mobileUrl}
                                     </span>
                                 </p>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-primary animate-pulse">
+                            <div className="flex items-center gap-2 text-xs text-primary animate-pulse font-mono tracking-tight">
                                 <div className="w-2 h-2 bg-primary rounded-full" />
-                                En attente de connexion...
+                                AWAITING_CONNECTION
                             </div>
                         </>
                     )}
 
                     {(status === 'uploaded' || status === 'consuming') && (
                         <div className="flex flex-col items-center gap-4 py-8">
-                            <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center">
-                                <CheckCircle2 className="w-8 h-8 text-green-500 animate-bounce" />
+                            <div className="w-16 h-16 bg-primary/10 tech-border flex items-center justify-center">
+                                <CheckCircle2 className="w-8 h-8 text-primary animate-bounce" />
                             </div>
-                            <p className="text-lg font-bold text-foreground">Photo reçue !</p>
-                            <p className="text-sm text-foreground/60">Traitement en cours...</p>
+                            <p className="text-lg font-bold text-foreground font-mono tracking-tight">UPLOAD_COMPLETE</p>
+                            <p className="text-sm text-foreground/60 font-mono">PROCESSING_DATA...</p>
                         </div>
                     )}
 
                     {status === 'error' && (
                         <div className="flex flex-col items-center gap-4 py-4">
-                            <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center">
-                                <X className="w-6 h-6 text-red-500" />
+                            <div className="w-12 h-12 bg-destructive/10 tech-border flex items-center justify-center">
+                                <X className="w-6 h-6 text-destructive" />
                             </div>
-                            <p className="text-sm text-red-500 font-medium">{error || "Une erreur est survenue"}</p>
+                            <p className="text-sm text-destructive font-medium font-mono tracking-tight">{error || "ERROR_OCCURRED"}</p>
                             <button 
                                 onClick={() => setStatus('loading')} // Retry logic could be better
-                                className="text-xs text-primary hover:underline"
+                                className="text-xs text-primary hover:text-primary/80 font-mono border border-border px-2 py-1 hover:bg-primary/10 transition-colors"
                             >
-                                Réessayer
+                                RETRY
                             </button>
                         </div>
                     )}

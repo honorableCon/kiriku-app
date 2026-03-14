@@ -19,8 +19,9 @@ export const api = axios.create({
 // Instance pour le serveur (sans intercepteurs Zustand)
 export const serverApi = axios.create({
     baseURL: API_URL,
+    // Ne pas forcer Content-Type ici pour laisser axios gérer multipart/form-data
     headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
     },
     timeout: 30000,
 });
@@ -56,6 +57,12 @@ api.interceptors.request.use(
                 config.headers.Authorization = `Bearer ${token}`;
             }
         }
+        
+        // Let browser set the correct boundary for multipart/form-data
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
+        }
+        
         return config;
     },
     (error) => Promise.reject(error)
