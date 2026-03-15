@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { FileText, Plus, Search, Edit, Trash2, Eye, Globe, Shield, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getTemplates, deleteTemplate } from "@/lib/resources";
+import { deleteTemplate } from "@/lib/resources";
+import { getAdminTemplates, setAdminTemplateActive } from "@/lib/resources-ext";
 import type { Template } from "@/types";
 import { toast } from "sonner";
 import { TemplateModal } from "@/components/templates/TemplateModal";
@@ -11,6 +12,7 @@ import { TemplateModal } from "@/components/templates/TemplateModal";
 export default function AdminTemplatesPage() {
     const [templates, setTemplates] = useState<Template[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [updatingSlug, setUpdatingSlug] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -27,7 +29,7 @@ export default function AdminTemplatesPage() {
 
     const fetchTemplates = async () => {
         try {
-            const data = await getTemplates();
+            const data = await getAdminTemplates();
             setTemplates(data);
         } catch {
             toast.error("Erreur lors du chargement des modèles");
@@ -57,6 +59,19 @@ export default function AdminTemplatesPage() {
             toast.success("Modèle supprimé");
         } catch {
             toast.error("Erreur lors de la suppression du modèle");
+        }
+    };
+
+    const handleToggleActive = async (template: Template) => {
+        setUpdatingSlug(template.slug);
+        try {
+            const updated = await setAdminTemplateActive(template.slug, !template.isActive);
+            setTemplates((prev) => prev.map((t) => (t.slug === template.slug ? updated : t)));
+            toast.success(updated.isActive ? "Modèle activé" : "Modèle désactivé");
+        } catch {
+            toast.error("Erreur lors de la mise à jour du statut");
+        } finally {
+            setUpdatingSlug(null);
         }
     };
 
@@ -115,6 +130,7 @@ export default function AdminTemplatesPage() {
                             <th className="px-6 py-3 text-[10px] font-black text-foreground/40 uppercase tracking-wider font-mono">COUNTRY</th>
                             <th className="px-6 py-3 text-[10px] font-black text-foreground/40 uppercase tracking-wider font-mono">FIELDS</th>
                             <th className="px-6 py-3 text-[10px] font-black text-foreground/40 uppercase tracking-wider font-mono">USAGE</th>
+                            <th className="px-6 py-3 text-[10px] font-black text-foreground/40 uppercase tracking-wider font-mono">STATUS</th>
                             <th className="px-6 py-3 text-[10px] font-black text-foreground/40 uppercase tracking-wider font-mono text-right">ACTIONS</th>
                         </tr>
                     </thead>
@@ -126,6 +142,7 @@ export default function AdminTemplatesPage() {
                                     <td className="px-6 py-3"><div className="h-5 w-20 bg-black/60 tech-border border-border/40" /></td>
                                     <td className="px-6 py-3"><div className="h-5 w-16 bg-black/60 tech-border border-border/40" /></td>
                                     <td className="px-6 py-3"><div className="h-5 w-12 bg-black/60 tech-border border-border/40" /></td>
+                                    <td className="px-6 py-3"><div className="h-5 w-16 bg-black/60 tech-border border-border/40" /></td>
                                     <td className="px-6 py-3"><div className="h-5 w-16 bg-black/60 tech-border border-border/40" /></td>
                                     <td className="px-6 py-3"><div className="h-6 w-20 bg-black/60 tech-border border-border/40 ml-auto" /></td>
                                 </tr>
@@ -161,6 +178,25 @@ export default function AdminTemplatesPage() {
                                     <td className="px-6 py-3 text-xs text-foreground/60 font-mono">
                                         {(template.usageCount || 0).toLocaleString()}
                                     </td>
+                                    <td className="px-6 py-3">
+                                        <button
+                                            onClick={() => handleToggleActive(template)}
+                                            disabled={updatingSlug === template.slug}
+                                            className={cn(
+                                                "tech-border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all font-mono disabled:opacity-50 disabled:cursor-not-allowed",
+                                                template.isActive
+                                                    ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50"
+                                                    : "bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20 hover:border-red-500/50",
+                                            )}
+                                            title={template.isActive ? "Désactiver ce modèle" : "Activer ce modèle"}
+                                        >
+                                            {updatingSlug === template.slug
+                                                ? "UPDATING..."
+                                                : template.isActive
+                                                    ? "ACTIVE"
+                                                    : "DISABLED"}
+                                        </button>
+                                    </td>
                                     <td className="px-6 py-3 text-right">
                                         <div className="flex items-center justify-end gap-1">
                                             <button 
@@ -191,7 +227,7 @@ export default function AdminTemplatesPage() {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center">
+                                <td colSpan={7} className="px-6 py-12 text-center">
                                     <div className="w-16 h-16 tech-border bg-black/60 border-border/40 flex items-center justify-center mx-auto mb-4 text-foreground/20">
                                         <FileText size={28} />
                                     </div>
@@ -248,4 +284,3 @@ export default function AdminTemplatesPage() {
         </div>
     );
 }
-

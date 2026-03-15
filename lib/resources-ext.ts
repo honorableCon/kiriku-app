@@ -1,5 +1,5 @@
 import { api, getErrorMessage } from './api';
-import type { ApiKey, Webhook, UsageStats, AnalyticsOverview, TimeSeriesData, User, Plan } from '@/types';
+import type { ApiKey, Webhook, UsageStats, AnalyticsOverview, TimeSeriesData, User, Plan, Template } from '@/types';
 
 export async function getAdminUsers(params: { limit: number; offset: number }): Promise<{ data: User[]; total: number }> {
     try {
@@ -245,6 +245,24 @@ export async function updatePlanStatus(id: string, isActive: boolean): Promise<{
 export async function syncPlanWithDexpay(id: string, dexpayProductId: string): Promise<{ plan: Plan }> {
     try {
         const response = await api.patch<{ plan: Plan }>(`/plans/${id}/sync`, { dexpayProductId });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function getAdminTemplates(): Promise<Template[]> {
+    try {
+        const response = await api.get<Template[]>('/templates/admin');
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function setAdminTemplateActive(slug: string, isActive: boolean): Promise<Template> {
+    try {
+        const response = await api.patch<Template>(`/templates/admin/${slug}/active`, { isActive });
         return response.data;
     } catch (error) {
         throw new Error(getErrorMessage(error));
