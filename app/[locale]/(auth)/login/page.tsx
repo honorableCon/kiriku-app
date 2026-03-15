@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const params = useSearchParams();
     const verificationSent = params.get("verify") === "1";
@@ -18,6 +19,7 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
+        setError(null);
 
         const formData = new FormData(e.currentTarget);
         const email = formData.get("email") as string;
@@ -31,11 +33,13 @@ export default function LoginPage() {
             });
 
             if (result?.error) {
+                setError("Identifiants invalides");
                 toast.error("Identifiants invalides");
             } else {
                 router.push("/dashboard/overview");
             }
         } catch (err) {
+            setError("Une erreur est survenue");
             toast.error("Une erreur est survenue");
         } finally {
             setIsLoading(false);
@@ -74,6 +78,12 @@ export default function LoginPage() {
                     {verified ? (
                         <div className="mb-4 border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary/80 font-mono">
                             Email vérifié. Vous pouvez vous connecter.
+                        </div>
+                    ) : null}
+                    {error ? (
+                        <div className="mb-4 border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-500 font-mono flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                            {error}
                         </div>
                     ) : null}
                     <div className="space-y-5">
