@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Webhook as WebhookIcon, Plus, ExternalLink, Activity, AlertCircle, Trash2, Edit2, Play, CheckCircle2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Webhook as WebhookIcon, Plus, ExternalLink, Activity, AlertCircle, Trash2, Edit2, Play } from "lucide-react";
 import { getWebhooks, createWebhook, deleteWebhook, testWebhook } from "@/lib/resources-ext";
 import type { Webhook } from "@/types";
 import { toast } from "sonner";
@@ -12,8 +13,12 @@ export default function WebhooksPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
     const [newWebhookUrl, setNewWebhookUrl] = useState("");
+    const [accessError, setAccessError] = useState<string | null>(null);
+    const didInitFetch = useRef(false);
 
     useEffect(() => {
+        if (didInitFetch.current) return;
+        didInitFetch.current = true;
         fetchWebhooks();
     }, []);
 
@@ -21,8 +26,17 @@ export default function WebhooksPage() {
         try {
             const data = await getWebhooks();
             setWebhooks(data);
+            setAccessError(null);
         } catch (err) {
-            toast.error("Erreur lors du chargement des webhooks");
+            const message =
+                err instanceof Error && err.message
+                    ? err.message
+                    : "Erreur lors du chargement des webhooks";
+            if (message.toLowerCase().includes("plan") || message.includes("403")) {
+                setAccessError(message);
+                return;
+            }
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
@@ -31,6 +45,10 @@ export default function WebhooksPage() {
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newWebhookUrl) return;
+        if (accessError) {
+            toast.error("Fonctionnalité disponible à partir du plan Starter");
+            return;
+        }
 
         setIsCreating(true);
         try {
@@ -42,7 +60,7 @@ export default function WebhooksPage() {
             setWebhooks([...webhooks, newWebhook]);
             setNewWebhookUrl("");
             toast.success("Webhook créé avec succès");
-        } catch (err) {
+        } catch {
             toast.error("Erreur lors de la création du webhook");
         } finally {
             setIsCreating(false);
@@ -51,20 +69,28 @@ export default function WebhooksPage() {
 
     const handleDelete = async (id: string) => {
         if (!confirm("Voulez-vous vraiment supprimer ce webhook ?")) return;
+        if (accessError) {
+            toast.error("Fonctionnalité disponible à partir du plan Starter");
+            return;
+        }
         try {
             await deleteWebhook(id);
             setWebhooks(webhooks.filter(w => w.id !== id));
             toast.success("Webhook supprimé");
-        } catch (err) {
+        } catch {
             toast.error("Erreur lors de la suppression");
         }
     };
 
     const handleTest = async (id: string) => {
+        if (accessError) {
+            toast.error("Fonctionnalité disponible à partir du plan Starter");
+            return;
+        }
         try {
             await testWebhook(id);
             toast.success("Test envoyé avec succès");
-        } catch (err) {
+        } catch {
             toast.error("Échec du test webhook");
         }
     };
@@ -82,6 +108,29 @@ export default function WebhooksPage() {
                 <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2 font-mono">
                     <Plus size={16} className="text-primary" /> ADD_ENDPOINT
                 </h3>
+                {accessError ? (
+                    <div className="mb-4 tech-border border-yellow-500/30 bg-yellow-500/10 p-4">
+                        <div className="flex items-start gap-3">
+                            <AlertCircle className="text-yellow-500 mt-0.5" size={18} />
+                            <div className="flex-1">
+                                <div className="text-xs font-mono text-yellow-500 uppercase tracking-widest">
+                                    Upgrade requis
+                                </div>
+                                <div className="text-sm text-foreground/70 font-mono mt-1">
+                                    Les webhooks sont disponibles à partir du plan Starter. Message: {accessError}
+                                </div>
+                                <div className="mt-3">
+                                    <Link
+                                        href="/dashboard/billing"
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-black text-[10px] font-bold uppercase tracking-widest hover:bg-primary/90 transition-all font-mono"
+                                    >
+                                        Aller à la facturation <ExternalLink size={12} />
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : null}
                 <form onSubmit={handleCreate} className="flex gap-4">
                     <input
                         type="url"
@@ -89,11 +138,12 @@ export default function WebhooksPage() {
                         required
                         value={newWebhookUrl}
                         onChange={(e) => setNewWebhookUrl(e.target.value)}
+                        disabled={!!accessError}
                         className="flex-1 px-4 py-2.5 bg-primary/10 border border-primary/20 tech-border text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all font-mono text-foreground"
                     />
                     <button 
                         type="submit" 
-                        disabled={isCreating}
+                        disabled={isCreating || !!accessError}
                         className="px-6 py-2.5 bg-primary text-white tech-border text-sm font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50 font-mono"
                     >
                         {isCreating ? "CREATING" : "ADD"}
@@ -111,7 +161,7 @@ export default function WebhooksPage() {
                     </div>
                 ) : webhooks.length > 0 ? (
                     webhooks.map((webhook) => (
-                        <div key={webhook.id} className="tech-border bg-black/40 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 group">
+                        <div key={webhook.id || webhook.url} className="tech-border bg-black/40 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 group">
                             <div className="flex items-start gap-4">
                                 <div className={cn("p-3 tech-border", webhook.isActive ? "bg-primary/10 text-primary" : "bg-zinc-500/10 text-zinc-500")}>
                                     <WebhookIcon size={24} />
@@ -129,8 +179,8 @@ export default function WebhooksPage() {
                                     </div>
                                     <p className="text-sm font-mono text-foreground/60 mt-1">{webhook.url}</p>
                                     <div className="flex gap-2 mt-3">
-                                        {webhook.events.map(event => (
-                                            <span key={event} className="text-[10px] font-medium bg-primary/5 px-2 py-1 tech-border text-foreground/60 border-primary/20 font-mono">
+                                        {webhook.events.map((event, idx) => (
+                                            <span key={`${webhook.id || webhook.url}:${event}:${idx}`} className="text-[10px] font-medium bg-primary/5 px-2 py-1 tech-border text-foreground/60 border-primary/20 font-mono">
                                                 {event}
                                             </span>
                                         ))}

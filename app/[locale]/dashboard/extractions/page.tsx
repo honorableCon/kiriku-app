@@ -26,6 +26,7 @@ export default function ExtractionsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState("");
+    const [isExporting, setIsExporting] = useState(false);
 
     useEffect(() => {
         fetchExtractions();
@@ -56,6 +57,32 @@ export default function ExtractionsPage() {
         }
     };
 
+    const exportCsv = async () => {
+        setIsExporting(true);
+        try {
+            const res = await api.get<{ data: string; format: string }>("/analytics/export", {
+                params: { format: "csv" },
+            });
+
+            const blob = new Blob([res.data.data], { type: "text/csv;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `kiriku_extractions_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+            toast.success("Export CSV généré");
+        } catch (err) {
+            toast.error("Erreur lors de l'export CSV");
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     const filteredExtractions = extractions.filter(ext => 
         ext.referenceId.toLowerCase().includes(search.toLowerCase()) ||
         (ext.documentType || '').toLowerCase().includes(search.toLowerCase())
@@ -73,8 +100,17 @@ export default function ExtractionsPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="p-3 border border-border bg-black/40 text-foreground/60 hover:text-primary hover:border-primary/50 transition-all group">
-                        <Download size={18} className="group-hover:scale-110 transition-transform" />
+                    <button
+                        onClick={exportCsv}
+                        disabled={isExporting}
+                        className="p-3 border border-border bg-black/40 text-foreground/60 hover:text-primary hover:border-primary/50 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Exporter CSV"
+                    >
+                        {isExporting ? (
+                            <div className="w-[18px] h-[18px] border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                        ) : (
+                            <Download size={18} className="group-hover:scale-110 transition-transform" />
+                        )}
                     </button>
                     <Link href="/dashboard/playground" className="px-6 py-3 bg-primary text-black text-xs font-bold uppercase tracking-widest hover:bg-white transition-all flex items-center gap-2 clip-path-polygon group">
                         <ArrowUpRight size={16} className="group-hover:rotate-45 transition-transform" /> New_Process

@@ -3,20 +3,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { CreditCard, TrendingUp, Loader2, FileText, ArrowRight } from "lucide-react";
 import api from "@/lib/api";
-import { getAdminInvoices } from "@/lib/resources-ext";
+import { getAdminInvoices, getAdminTransactions } from "@/lib/resources-ext";
 import { toast } from "sonner";
 
 export default function AdminRevenuePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isInvoicesLoading, setIsInvoicesLoading] = useState(true);
+    const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
     const [overview, setOverview] = useState<{
         revenueXof: number;
         completedTransactions: number;
     } | null>(null);
     const [invoices, setInvoices] = useState<any[]>([]);
     const [total, setTotal] = useState(0);
+    const [transactions, setTransactions] = useState<any[]>([]);
+    const [trxTotal, setTrxTotal] = useState(0);
     const [page, setPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState<string>("all");
+    const [trxPage, setTrxPage] = useState(1);
     const limit = 25;
 
     useEffect(() => {
@@ -54,6 +58,26 @@ export default function AdminRevenuePage() {
         fetchInvoices();
     }, [page, statusFilter]);
 
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            setIsTransactionsLoading(true);
+            try {
+                const { data, total } = await getAdminTransactions({
+                    limit,
+                    offset: (trxPage - 1) * limit,
+                    status: "completed",
+                });
+                setTransactions(data);
+                setTrxTotal(total);
+            } catch {
+                toast.error("Erreur lors du chargement des transactions");
+            } finally {
+                setIsTransactionsLoading(false);
+            }
+        };
+        fetchTransactions();
+    }, [trxPage]);
+
     const invoiceStats = useMemo(() => {
         const paid = invoices.filter((i) => i.status === "paid");
         const pending = invoices.filter((i) => i.status === "pending");
@@ -66,6 +90,7 @@ export default function AdminRevenuePage() {
     }, [invoices]);
 
     const totalPages = Math.max(1, Math.ceil(total / limit));
+    const trxTotalPages = Math.max(1, Math.ceil(trxTotal / limit));
 
     return (
         <div className="space-y-6">
@@ -131,6 +156,77 @@ export default function AdminRevenuePage() {
             <div className="tech-border bg-black/40 border-primary/20 p-4">
                 <div className="flex items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-2">
+                        <CreditCard size={16} className="text-primary" />
+                        <span className="text-xs font-mono text-primary/80 uppercase tracking-widest">TRANSACTIONS</span>
+                    </div>
+                </div>
+
+                {isTransactionsLoading ? (
+                    <div className="flex items-center gap-2 text-xs font-mono text-foreground/60">
+                        <Loader2 size={14} className="animate-spin" />
+                        LOADING_TRANSACTIONS
+                    </div>
+                ) : transactions.length === 0 ? (
+                    <div className="text-xs font-mono text-foreground/50">NO_TRANSACTIONS</div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-border/50 text-[10px] text-foreground/50 font-mono uppercase tracking-widest">
+                                    <th className="py-3 px-2">Reference</th>
+                                    <th className="py-3 px-2">User</th>
+                                    <th className="py-3 px-2">Amount</th>
+                                    <th className="py-3 px-2">Type</th>
+                                    <th className="py-3 px-2">Provider</th>
+                                    <th className="py-3 px-2">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {transactions.map((trx) => (
+                                    <tr key={trx.id} className="border-b border-border/10 hover:bg-white/5 transition-colors text-xs font-mono">
+                                        <td className="py-3 px-2 text-foreground/80">{trx.reference}</td>
+                                        <td className="py-3 px-2 text-foreground/60">{trx.user?.email || "UNKNOWN"}</td>
+                                        <td className="py-3 px-2 font-bold text-foreground">
+                                            {(trx.amount || 0).toLocaleString()} {trx.currency}
+                                        </td>
+                                        <td className="py-3 px-2 text-foreground/60">{(trx.type || "—").toString()}</td>
+                                        <td className="py-3 px-2 text-foreground/60">{(trx.provider || "—").toString()}</td>
+                                        <td className="py-3 px-2 text-foreground/60">
+                                            {trx.createdAt ? new Date(trx.createdAt).toLocaleDateString("fr-FR") : "—"}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                <div className="mt-4 flex items-center justify-between">
+                    <div className="text-[10px] font-mono text-foreground/50">
+                        TOTAL // {trxTotal} • PAGE {trxPage}/{trxTotalPages}
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            disabled={trxPage <= 1}
+                            onClick={() => setTrxPage((p) => Math.max(1, p - 1))}
+                            className="tech-border bg-black/40 border-border/40 px-3 py-2 text-[10px] font-bold font-mono uppercase tracking-wider text-foreground/60 disabled:opacity-40"
+                        >
+                            PREV
+                        </button>
+                        <button
+                            disabled={trxPage >= trxTotalPages}
+                            onClick={() => setTrxPage((p) => Math.min(trxTotalPages, p + 1))}
+                            className="tech-border bg-black/40 border-border/40 px-3 py-2 text-[10px] font-bold font-mono uppercase tracking-wider text-foreground/60 disabled:opacity-40"
+                        >
+                            NEXT
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="tech-border bg-black/40 border-primary/20 p-4">
+                <div className="flex items-center justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-2">
                         <FileText size={16} className="text-primary" />
                         <span className="text-xs font-mono text-primary/80 uppercase tracking-widest">INVOICES</span>
                     </div>
@@ -139,6 +235,7 @@ export default function AdminRevenuePage() {
                             value={statusFilter}
                             onChange={(e) => {
                                 setPage(1);
+                                setTrxPage(1);
                                 setStatusFilter(e.target.value);
                             }}
                             className="tech-border bg-black/40 border-border/40 px-3 py-2 text-xs font-mono text-foreground/80 focus:outline-none focus:border-primary"

@@ -242,6 +242,21 @@ export async function getInvoices(): Promise<Invoice[]> {
     }
 }
 
+export async function getTransactions(params?: {
+    limit?: number;
+    offset?: number;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+}): Promise<{ data: any[]; total: number }> {
+    try {
+        const response = await api.get<{ data: any[]; total: number }>('/billing/transactions', { params });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
 export async function createTemplate(data: Partial<Template>): Promise<Template> {
     try {
         const response = await api.post<Template>('/templates', data);

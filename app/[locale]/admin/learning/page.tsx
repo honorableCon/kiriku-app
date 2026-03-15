@@ -18,16 +18,32 @@ export default function AdminLearningPage() {
     const [rows, setRows] = useState<CorrectionRow[]>([]);
     const [total, setTotal] = useState(0);
     const [isExporting, setIsExporting] = useState(false);
+    const [learningStatus, setLearningStatus] = useState<{
+        enabled: boolean;
+        totalExamples: number;
+        totalValidated: number;
+        stats: Array<{ _id: string; count: number; validatedCount: number }>;
+    } | null>(null);
 
     const load = async () => {
         setIsLoading(true);
         try {
-            const res = await api.get<{ data: CorrectionRow[]; total: number }>(
-                "/admin/learning/corrections",
-                { params: { limit: 50, offset: 0 } }
-            );
-            setRows(res.data.data || []);
-            setTotal(res.data.total || 0);
+            const [correctionsRes, statusRes] = await Promise.all([
+                api.get<{ data: CorrectionRow[]; total: number }>(
+                    "/admin/learning/corrections",
+                    { params: { limit: 50, offset: 0 } }
+                ),
+                api.get<{
+                    enabled: boolean;
+                    totalExamples: number;
+                    totalValidated: number;
+                    stats: Array<{ _id: string; count: number; validatedCount: number }>;
+                }>("/learning/status"),
+            ]);
+
+            setRows(correctionsRes.data.data || []);
+            setTotal(correctionsRes.data.total || 0);
+            setLearningStatus(statusRes.data);
         } catch (err) {
             toast.error("Erreur lors du chargement des corrections");
         } finally {
@@ -42,6 +58,12 @@ export default function AdminLearningPage() {
     const fieldsCount = useMemo(() => {
         return rows.reduce((acc, r) => acc + Object.keys(r.userCorrection || {}).length, 0);
     }, [rows]);
+
+    const topTemplate = useMemo(() => {
+        const stats = learningStatus?.stats || [];
+        if (stats.length === 0) return null;
+        return stats.slice().sort((a, b) => b.count - a.count)[0];
+    }, [learningStatus]);
 
     const handleExport = async (format: "jsonl" | "json") => {
         setIsExporting(true);
@@ -119,8 +141,29 @@ export default function AdminLearningPage() {
                     <div className="text-3xl font-black text-foreground mt-2 font-mono">{fieldsCount.toLocaleString()}</div>
                 </div>
                 <div className="tech-border bg-black/40 p-6">
-                    <div className="text-xs font-bold text-foreground/40 uppercase tracking-wider font-mono">Dernières entrées</div>
-                    <div className="text-3xl font-black text-foreground mt-2 font-mono">{rows.length.toLocaleString()}</div>
+                    <div className="text-xs font-bold text-foreground/40 uppercase tracking-wider font-mono">Learning</div>
+                    {learningStatus ? (
+                        <div className="mt-2 space-y-1">
+                            <div className="text-2xl font-black text-foreground font-mono">
+                                {learningStatus.totalExamples.toLocaleString()}{" "}
+                                <span className="text-[10px] text-foreground/40 uppercase tracking-wider">EXAMPLES</span>
+                            </div>
+                            <div className="text-xs text-foreground/60 font-mono">
+                                {learningStatus.totalValidated.toLocaleString()} validated •{" "}
+                                {learningStatus.enabled ? "ENABLED" : "DISABLED"}
+                            </div>
+                            {topTemplate ? (
+                                <div className="text-[10px] text-foreground/50 font-mono">
+                                    Top: {topTemplate._id} ({topTemplate.count})
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 mt-2 text-xs text-foreground/60 font-mono">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Chargement...
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -173,4 +216,3 @@ export default function AdminLearningPage() {
         </div>
     );
 }
-

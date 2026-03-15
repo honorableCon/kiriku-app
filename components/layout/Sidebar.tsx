@@ -131,6 +131,8 @@ export default function Sidebar() {
                         <Link
                             key={item.name}
                             href={withLocale(item.href)}
+                            target={item.name === "DOCUMENTATION" ? "_blank" : undefined}
+                            rel={item.name === "DOCUMENTATION" ? "noopener noreferrer" : undefined}
                             className={cn(
                                 "flex items-center gap-4 px-6 py-3 text-xs font-bold tracking-widest transition-all group relative border-l-2",
                                 isActive
@@ -160,23 +162,57 @@ export default function Sidebar() {
                                 {user?.credits && user.credits > 0 ? "ACTIVE" : "EMPTY"}
                             </span>
                         </div>
-                        <div className="space-y-1">
-                            <div className="flex justify-between text-xs font-mono">
-                                <span className="text-foreground">
-                                    {user?.credits?.toLocaleString() || 0}
-                                </span>
-                                <span className="text-foreground/40">CREDITS</span>
+
+                        <div className="space-y-3">
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-xs font-mono">
+                                    <span className="text-foreground">
+                                        {user?.credits?.toLocaleString() || 0}
+                                    </span>
+                                    <span className="text-foreground/40">CREDITS</span>
+                                </div>
+                                <div className="h-1 w-full bg-accent rounded-none overflow-hidden">
+                                    <div
+                                        className={cn(
+                                            "h-full transition-all duration-500",
+                                            user?.credits === 0 ? "bg-destructive" : "bg-primary"
+                                        )}
+                                        style={{
+                                            width: user?.credits ? `${Math.min((user.credits / (plans.find(p => p.id === user.plan)?.credits || 1000)) * 100, 100)}%` : "0%"
+                                        }}
+                                    />
+                                </div>
                             </div>
-                            <div className="h-1 w-full bg-accent rounded-none overflow-hidden">
-                                <div
-                                    className={cn(
-                                        "h-full transition-all duration-500",
-                                        user?.credits === 0 ? "bg-destructive" : "bg-primary"
+
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-[10px] font-mono uppercase tracking-wider">
+                                    <span className="text-foreground/60">Monthly Quota</span>
+                                    {isLoadingStats ? (
+                                        <span className="text-foreground/40">LOADING</span>
+                                    ) : usageStats ? (
+                                        <span className="text-foreground/80">
+                                            {usageStats.thisMonth.toLocaleString()} / {usageStats.quota.toLocaleString()}
+                                        </span>
+                                    ) : (
+                                        <span className="text-foreground/40">—</span>
                                     )}
-                                    style={{
-                                        width: user?.credits ? `${Math.min((user.credits / (plans.find(p => p.id === user.plan)?.credits || 1000)) * 100, 100)}%` : "0%"
-                                    }}
-                                />
+                                </div>
+                                <div className="h-1 w-full bg-accent rounded-none overflow-hidden">
+                                    <div
+                                        className={cn("h-full transition-all duration-500", "bg-primary")}
+                                        style={{
+                                            width: usageStats
+                                                ? `${Math.min((usageStats.thisMonth / Math.max(usageStats.quota, 1)) * 100, 100)}%`
+                                                : "0%",
+                                        }}
+                                    />
+                                </div>
+                                {!isLoadingStats && usageStats ? (
+                                    <div className="flex justify-between text-[10px] font-mono text-foreground/40">
+                                        <span>{usageStats.remainingCredits.toLocaleString()} remaining</span>
+                                        <span>{usageStats.today.toLocaleString()} today</span>
+                                    </div>
+                                ) : null}
                             </div>
                         </div>
                         <Link

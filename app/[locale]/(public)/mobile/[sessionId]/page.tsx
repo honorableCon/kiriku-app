@@ -17,6 +17,8 @@ export default function MobileUploadPage() {
     const [backPreview, setBackPreview] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [isRevoked, setIsRevoked] = useState(false);
+    const [isRevoking, setIsRevoking] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showBackOption, setShowBackOption] = useState(false);
 
@@ -114,6 +116,21 @@ export default function MobileUploadPage() {
         }
     };
 
+    const handleRevokeSession = async () => {
+        if (!confirm("Annuler cette session ?")) return;
+        setIsRevoking(true);
+        setError(null);
+        try {
+            await serverApi.delete(`/mobile-handoff/session/${sessionId}`);
+            setIsRevoked(true);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.response?.data?.message || "Erreur lors de l'annulation de la session");
+        } finally {
+            setIsRevoking(false);
+        }
+    };
+
     const handleReset = () => {
         setFrontFile(null);
         setFrontPreview(null);
@@ -148,6 +165,20 @@ export default function MobileUploadPage() {
                 <h1 className="text-3xl font-bold text-foreground mb-3">Document envoyé !</h1>
                 <p className="text-foreground/60 text-base max-w-xs">
                     Vous pouvez maintenant retourner sur votre ordinateur pour lancer l'extraction.
+                </p>
+            </div>
+        );
+    }
+
+    if (isRevoked) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-24 h-24 rounded-full bg-destructive/10 flex items-center justify-center mb-6 animate-in zoom-in duration-500 shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+                    <X className="w-12 h-12 text-destructive" />
+                </div>
+                <h1 className="text-3xl font-bold text-foreground mb-3">Session annulée</h1>
+                <p className="text-foreground/60 text-base max-w-xs">
+                    Vous pouvez fermer cette page et relancer une nouvelle session depuis votre ordinateur.
                 </p>
             </div>
         );
@@ -307,6 +338,17 @@ export default function MobileUploadPage() {
                             Assurez-vous que le texte est lisible, bien éclairé et sans reflets pour une meilleure extraction.
                         </p>
                     </div>
+
+                    <button
+                        onClick={handleRevokeSession}
+                        disabled={isUploading || isRevoking}
+                        className={cn(
+                            "w-full py-3 px-6 rounded-xl text-destructive border border-destructive/30 hover:bg-destructive/10 text-sm font-bold transition-all",
+                            (isUploading || isRevoking) && "opacity-60 cursor-not-allowed"
+                        )}
+                    >
+                        {isRevoking ? "Annulation..." : "Annuler la session"}
+                    </button>
                 </div>
             </div>
         </div>

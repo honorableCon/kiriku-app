@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CreditCard, Shield, Zap, Loader2, ArrowRight, Check, X, FileText } from "lucide-react";
-import { createCheckoutSession, createSubscription, getCurrentUser, getPlans, getActiveSubscription, getInvoices, cancelSubscription } from "@/lib/resources";
+import { createCheckoutSession, createSubscription, getCurrentUser, getPlans, getActiveSubscription, getInvoices, cancelSubscription, getTransactions } from "@/lib/resources";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import type { User, Plan, Subscription, Invoice } from "@/types";
@@ -19,11 +19,16 @@ export default function BillingPage() {
     const [activeSubscription, setActiveSubscription] = useState<Subscription | null>(null);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [showAllInvoices, setShowAllInvoices] = useState(false);
+    const [transactions, setTransactions] = useState<any[]>([]);
+    const [trxTotal, setTrxTotal] = useState(0);
+    const [trxPage, setTrxPage] = useState(1);
+    const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
     const [isPlansLoading, setIsPlansLoading] = useState(true);
     const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month');
     const [showPhoneModal, setShowPhoneModal] = useState(false);
     const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
     const params = useSearchParams();
+    const trxLimit = 20;
 
     const loadData = async () => {
         try {
@@ -45,6 +50,23 @@ export default function BillingPage() {
         }
     };
 
+    const loadTransactions = async () => {
+        setIsTransactionsLoading(true);
+        try {
+            const res = await getTransactions({
+                limit: trxLimit,
+                offset: (trxPage - 1) * trxLimit,
+            });
+            setTransactions(res.data || []);
+            setTrxTotal(res.total || 0);
+        } catch (error) {
+            console.error(error);
+            toast.error("Erreur lors du chargement des transactions");
+        } finally {
+            setIsTransactionsLoading(false);
+        }
+    };
+
     useEffect(() => {
         const status = params.get("status");
         if (status === "success") {
@@ -59,6 +81,10 @@ export default function BillingPage() {
     useEffect(() => {
         loadData();
     }, []);
+
+    useEffect(() => {
+        loadTransactions();
+    }, [trxPage]);
 
     const handlePurchase = async (pack: Plan) => {
         setIsLoading(pack.id);
@@ -244,6 +270,82 @@ export default function BillingPage() {
                     </div>
                 </div>
             )}
+
+            <div className="tech-border bg-black/40 border-primary/20 p-6">
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                        <FileText size={16} className="text-primary" />
+                        <span className="text-xs font-mono text-primary/80 uppercase tracking-widest">TRANSACTIONS</span>
+                    </div>
+                    <div className="text-[10px] text-foreground/50 font-mono uppercase tracking-wider">
+                        TOTAL {trxTotal.toLocaleString()}
+                    </div>
+                </div>
+
+                {isTransactionsLoading ? (
+                    <div className="flex items-center gap-2 text-xs font-mono text-foreground/60">
+                        <Loader2 size={14} className="animate-spin" />
+                        CHARGEMENT
+                    </div>
+                ) : transactions.length === 0 ? (
+                    <div className="text-xs font-mono text-foreground/50">AUCUNE_TRANSACTION</div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-border/50 text-[10px] text-foreground/50 font-mono uppercase tracking-widest">
+                                    <th className="py-3 px-2">Reference</th>
+                                    <th className="py-3 px-2">Amount</th>
+                                    <th className="py-3 px-2">Credits</th>
+                                    <th className="py-3 px-2">Status</th>
+                                    <th className="py-3 px-2">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {transactions.map((trx) => (
+                                    <tr key={trx.id || trx.reference} className="border-b border-border/10 hover:bg-white/5 transition-colors text-xs font-mono">
+                                        <td className="py-3 px-2 text-foreground/80">{trx.reference || "—"}</td>
+                                        <td className="py-3 px-2 font-bold text-foreground">
+                                            {(trx.amount || 0).toLocaleString()} {trx.currency || ""}
+                                        </td>
+                                        <td className="py-3 px-2 text-foreground/60">{(trx.credits || 0).toLocaleString()}</td>
+                                        <td className="py-3 px-2">
+                                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-foreground/70 bg-black/40 border border-border/40">
+                                                {(trx.status || "—").toString()}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 px-2 text-foreground/60">
+                                            {trx.createdAt ? format(new Date(trx.createdAt), 'dd MMM yyyy', { locale: fr }) : "—"}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                <div className="mt-4 flex items-center justify-between">
+                    <div className="text-[10px] font-mono text-foreground/50">
+                        PAGE {trxPage} / {Math.max(1, Math.ceil(trxTotal / trxLimit))}
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            disabled={trxPage <= 1}
+                            onClick={() => setTrxPage((p) => Math.max(1, p - 1))}
+                            className="tech-border bg-black/40 border-border/40 px-3 py-2 text-[10px] font-bold font-mono uppercase tracking-wider text-foreground/60 disabled:opacity-40"
+                        >
+                            PREV
+                        </button>
+                        <button
+                            disabled={trxPage >= Math.max(1, Math.ceil(trxTotal / trxLimit))}
+                            onClick={() => setTrxPage((p) => p + 1)}
+                            className="tech-border bg-black/40 border-border/40 px-3 py-2 text-[10px] font-bold font-mono uppercase tracking-wider text-foreground/60 disabled:opacity-40"
+                        >
+                            NEXT
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <div className="tech-border bg-black/40 border-primary/20 p-6">
                 <div className="flex items-center gap-2 mb-4">
