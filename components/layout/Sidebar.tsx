@@ -13,20 +13,22 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    Plus,
     Activity,
-    Book
+    Book,
+    ShieldCheck,
+    Play
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
-import { getUsageStats } from "@/lib/resources-ext";
-import { getCurrentUser, getPlans } from "@/lib/resources";
-import type { UsageStats, User, Plan } from "@/types";
+import { getCurrentUser } from "@/lib/resources";
+import type { User } from "@/types";
 import { useLocale } from "next-intl";
 
 const navigation = [
     { name: "DASHBOARD", href: "/dashboard/overview", icon: LayoutDashboard },
+    { name: "PLAYGROUND OCR", href: "/dashboard/playground", icon: Play },
+    { name: "KYC & IDENTITY", href: "/dashboard/kyc", icon: ShieldCheck },
     { name: "API KEYS", href: "/dashboard/api-keys", icon: Key },
     { name: "EXTRACTIONS", href: "/dashboard/extractions", icon: FileText },
     { name: "ANALYTICS", href: "/dashboard/analytics", icon: BarChart3 },
@@ -40,10 +42,7 @@ export default function Sidebar() {
     const pathname = usePathname();
     const locale = useLocale();
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
-    const [isLoadingStats, setIsLoadingStats] = useState(true);
     const [user, setUser] = useState<User | null>(null);
-    const [plans, setPlans] = useState<Plan[]>([]);
 
     const withLocale = (href: string) => {
         if (!href.startsWith("/")) return `/${locale}/${href}`;
@@ -55,34 +54,6 @@ export default function Sidebar() {
     const handleLogout = async () => {
         await signOut({ callbackUrl: "/login" });
     };
-
-    useEffect(() => {
-        const fetchUsageStats = async () => {
-            try {
-                const stats = await getUsageStats();
-                setUsageStats(stats);
-            } catch (error) {
-                console.error("Failed to fetch usage stats:", error);
-            } finally {
-                setIsLoadingStats(false);
-            }
-        };
-
-        fetchUsageStats();
-    }, []);
-
-    useEffect(() => {
-        const fetchPlans = async () => {
-            try {
-                const plansData = await getPlans();
-                setPlans(plansData);
-            } catch (error) {
-                console.error("Failed to fetch plans:", error);
-            }
-        };
-
-        fetchPlans();
-    }, []);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -151,79 +122,6 @@ export default function Sidebar() {
             </div>
 
             <div className="p-4 border-t border-border bg-black/50">
-                {!isCollapsed && (
-                    <div className="mb-6 p-4 border border-border bg-accent/5 space-y-3 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-1">
-                            <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
-                        </div>
-                        <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
-                            <span className="text-foreground/60">Balance Status</span>
-                            <span className={user?.credits && user.credits > 0 ? "text-primary" : "text-destructive"}>
-                                {user?.credits && user.credits > 0 ? "ACTIVE" : "EMPTY"}
-                            </span>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="space-y-1">
-                                <div className="flex justify-between text-xs font-mono">
-                                    <span className="text-foreground">
-                                        {user?.credits?.toLocaleString() || 0}
-                                    </span>
-                                    <span className="text-foreground/40">CREDITS</span>
-                                </div>
-                                <div className="h-1 w-full bg-accent rounded-none overflow-hidden">
-                                    <div
-                                        className={cn(
-                                            "h-full transition-all duration-500",
-                                            user?.credits === 0 ? "bg-destructive" : "bg-primary"
-                                        )}
-                                        style={{
-                                            width: user?.credits ? `${Math.min((user.credits / (plans.find(p => p.id === user.plan)?.credits || 1000)) * 100, 100)}%` : "0%"
-                                        }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <div className="flex justify-between text-[10px] font-mono uppercase tracking-wider">
-                                    <span className="text-foreground/60">Monthly Quota</span>
-                                    {isLoadingStats ? (
-                                        <span className="text-foreground/40">LOADING</span>
-                                    ) : usageStats ? (
-                                        <span className="text-foreground/80">
-                                            {usageStats.thisMonth.toLocaleString()} / {usageStats.quota.toLocaleString()}
-                                        </span>
-                                    ) : (
-                                        <span className="text-foreground/40">—</span>
-                                    )}
-                                </div>
-                                <div className="h-1 w-full bg-accent rounded-none overflow-hidden">
-                                    <div
-                                        className={cn("h-full transition-all duration-500", "bg-primary")}
-                                        style={{
-                                            width: usageStats
-                                                ? `${Math.min((usageStats.thisMonth / Math.max(usageStats.quota, 1)) * 100, 100)}%`
-                                                : "0%",
-                                        }}
-                                    />
-                                </div>
-                                {!isLoadingStats && usageStats ? (
-                                    <div className="flex justify-between text-[10px] font-mono text-foreground/40">
-                                        <span>{usageStats.remainingCredits.toLocaleString()} remaining</span>
-                                        <span>{usageStats.today.toLocaleString()} today</span>
-                                    </div>
-                                ) : null}
-                            </div>
-                        </div>
-                        <Link
-                            href={withLocale("/dashboard/billing")}
-                            className="w-full py-2 border border-primary/30 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-black transition-all flex items-center justify-center gap-2"
-                        >
-                            <Plus size={12} /> Buy Credits
-                        </Link>
-                    </div>
-                )}
-                
                 <div className={cn("flex items-center gap-3", isCollapsed ? "justify-center" : "px-2")}>
                     <div className="w-8 h-8 bg-zinc-800 flex items-center justify-center text-foreground/60">
                         <Activity size={16} />

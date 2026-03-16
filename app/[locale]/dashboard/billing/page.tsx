@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { CreditCard, Shield, Zap, Loader2, ArrowRight, Check, X, FileText } from "lucide-react";
 import { createCheckoutSession, createSubscription, getCurrentUser, getPlans, getActiveSubscription, getInvoices, cancelSubscription, getTransactions } from "@/lib/resources";
+import { getUsageStats } from "@/lib/resources-ext";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
-import type { User, Plan, Subscription, Invoice } from "@/types";
+import type { User, Plan, Subscription, Invoice, UsageStats } from "@/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -17,6 +18,7 @@ export default function BillingPage() {
     const [user, setUser] = useState<User | null>(null);
     const [plans, setPlans] = useState<Plan[]>([]);
     const [activeSubscription, setActiveSubscription] = useState<Subscription | null>(null);
+    const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [showAllInvoices, setShowAllInvoices] = useState(false);
     const [transactions, setTransactions] = useState<any[]>([]);
@@ -32,17 +34,19 @@ export default function BillingPage() {
 
     const loadData = async () => {
         try {
-            const [me, fetchedPlans, sub, invs] = await Promise.all([
+            const [me, fetchedPlans, sub, invs, stats] = await Promise.all([
                 getCurrentUser(),
                 getPlans(),
                 getActiveSubscription(),
-                getInvoices()
+                getInvoices(),
+                getUsageStats()
             ]);
             setUser(me);
             if (me.phone) setBillingPhone(me.phone);
             setPlans(fetchedPlans);
             setActiveSubscription(sub);
             setInvoices(invs);
+            setUsageStats(stats);
         } catch (error) {
             console.error(error);
         } finally {
@@ -177,38 +181,91 @@ export default function BillingPage() {
                 <p className="text-foreground/60 mt-1 font-mono text-xs">CREDIT_MANAGEMENT // INVOICE_TRACKING</p>
             </div>
 
-            <div className="tech-border bg-primary/10 border-primary/30 p-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-primary/20 border border-primary/40 text-primary">
-                            <Zap size={24} className="animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2 tech-border bg-primary/10 border-primary/30 p-6 flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-primary/20 border border-primary/40 text-primary">
+                                <Zap size={24} className="animate-pulse" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-mono text-foreground/50 uppercase tracking-widest">CURRENT_BALANCE</p>
+                                <p className="text-3xl font-black text-foreground font-mono">{user?.credits?.toLocaleString() || 0} <span className="text-lg text-foreground/40">CREDITS</span></p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-[10px] font-mono text-foreground/50 uppercase tracking-widest">CURRENT_BALANCE</p>
-                            <p className="text-3xl font-black text-foreground font-mono">{user?.credits?.toLocaleString() || 0} <span className="text-lg text-foreground/40">CREDITS</span></p>
+                        <div className="text-right">
+                            <p className="text-[10px] font-mono text-foreground/50 uppercase tracking-widest">PLAN</p>
+                            <p className="text-sm font-bold text-primary font-mono uppercase">{user?.plan || 'FREE'}</p>
                         </div>
                     </div>
-                    <div className="text-right">
-                        <p className="text-[10px] font-mono text-foreground/50 uppercase tracking-widest">PLAN</p>
-                        <p className="text-sm font-bold text-primary font-mono uppercase">{user?.plan || 'FREE'}</p>
+
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] font-mono uppercase tracking-wider">
+                            <span className="text-foreground/60">Monthly Usage</span>
+                            {usageStats ? (
+                                <span className="text-foreground/80">
+                                    {usageStats.thisMonth.toLocaleString()} / {usageStats.quota.toLocaleString()}
+                                </span>
+                            ) : (
+                                <span className="text-foreground/40">—</span>
+                            )}
+                        </div>
+                        <div className="h-1.5 w-full bg-black/40 border border-primary/20 overflow-hidden">
+                            <div
+                                className="h-full bg-primary transition-all duration-500"
+                                style={{
+                                    width: usageStats ? `${Math.min((usageStats.thisMonth / Math.max(usageStats.quota, 1)) * 100, 100)}%` : "0%"
+                                }}
+                            />
+                        </div>
                     </div>
+                </div>
+
+                <div className="tech-border bg-black/40 border-primary/20 p-6 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Shield size={16} className="text-primary" />
+                            <span className="text-xs font-mono text-primary/80 uppercase tracking-widest">SUBSCRIPTION</span>
+                        </div>
+                        
+                        {activeSubscription ? (
+                            <div className="space-y-4 mt-4">
+                                <div>
+                                    <div className="text-[10px] text-foreground/50 font-mono uppercase">Status</div>
+                                    <div className={`text-sm font-bold font-mono uppercase ${activeSubscription.status === 'active' ? 'text-green-500' : 'text-yellow-500'}`}>
+                                        {activeSubscription.status}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-[10px] text-foreground/50 font-mono uppercase">Renouvellement</div>
+                                    <div className="text-sm font-mono text-foreground">
+                                        {format(new Date(activeSubscription.currentPeriodEnd), 'dd MMM yyyy', { locale: fr })}
+                                    </div>
+                                </div>
+                                {activeSubscription.cancelAtPeriodEnd && (
+                                    <div className="text-[10px] text-red-400 font-mono bg-red-500/10 p-2 border border-red-500/20">
+                                        ANNULATION PROGRAMMÉE
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="mt-4 text-sm font-mono text-foreground/60">
+                                Aucun abonnement actif.
+                            </div>
+                        )}
+                    </div>
+
+                    {activeSubscription && !activeSubscription.cancelAtPeriodEnd && (
+                        <button
+                            onClick={handleCancelSubscription}
+                            disabled={isCancelling}
+                            className="mt-4 w-full py-2 border border-red-500/30 text-red-500 text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 hover:text-black transition-all"
+                        >
+                            {isCancelling ? <Loader2 size={12} className="animate-spin inline" /> : "ANNULER"}
+                        </button>
+                    )}
                 </div>
             </div>
-
-            {/* Current Plan Highlight in Subscription Section */}
-            {/* {user?.plan && (
-                <div className="tech-border bg-primary/5 border-primary/40 p-4">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-primary animate-pulse rounded-full"></div>
-                        <span className="text-xs font-mono text-primary uppercase tracking-widest">
-                            PLAN ACTUEL
-                        </span>
-                    </div>
-                    <p className="text-sm font-black text-foreground font-mono uppercase mt-1">
-                        {user.plan.toUpperCase()}
-                    </p>
-                </div>
-            )} */}
 
             {/* Invoices Section */}
             {invoices.length > 0 && (
