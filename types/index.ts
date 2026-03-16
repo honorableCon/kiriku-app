@@ -287,6 +287,8 @@ export interface Subscription {
     interval: 'month' | 'year';
     startDate: string;
     endDate: string;
+    currentPeriodEnd: string;
+    cancelAtPeriodEnd: boolean;
     price: number;
     currency: string;
 }
