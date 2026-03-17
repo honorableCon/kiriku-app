@@ -23,6 +23,7 @@ const navigation = [
     { name: "OVERVIEW", href: "/admin", icon: LayoutDashboard },
     { name: "USERS", href: "/admin/users", icon: Users },
     { name: "TEMPLATES", href: "/admin/templates", icon: FileText },
+    { name: "TEMPLATE_REQUESTS", href: "/admin/template-requests", icon: FileText },
     { name: "BILLING_PLANS", href: "/admin/plans", icon: CreditCard },
     { name: "LEARNING", href: "/admin/learning", icon: Cpu },
     { name: "REVENUE", href: "/admin/revenue", icon: LayoutDashboard },

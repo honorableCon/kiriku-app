@@ -25,6 +25,44 @@ export interface User {
     };
     credits?: number;
     createdAt: string;
+    updatedAt: string;
+}
+
+export interface User {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    company: string;
+    role: 'user' | 'admin';
+    plan: 'free' | 'starter' | 'growth' | 'pro' | 'enterprise';
+    isEmailVerified: boolean;
+    preferences: {
+        language: string;
+        theme: string;
+        notifications: {
+            extractionEmails: boolean;
+            billingAlerts: boolean;
+            productNewsletter: boolean;
+        };
+    };
+    credits?: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface TemplateRequest {
+    _id: string;
+    title: string;
+    description: string;
+    fields: string[];
+    exampleFiles: string[];
+    status: 'pending' | 'in_progress' | 'completed' | 'rejected';
+    userId: string | User;
+    createdTemplateId?: string;
+    adminNotes?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface OpenRouterConfig {

@@ -282,3 +282,22 @@ export async function deleteTemplate(slug: string): Promise<void> {
         throw new Error(getErrorMessage(error));
     }
 }
+
+export async function getTemplateRequests(): Promise<import('@/types').TemplateRequest[]> {
+    try {
+        const response = await api.get<import('@/types').TemplateRequest[]>('/template-requests');
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function createTemplateRequest(data: FormData): Promise<import('@/types').TemplateRequest> {
+    try {
+        // We pass FormData directly so axios sets the correct multipart/form-data boundary
+        const response = await api.post<import('@/types').TemplateRequest>('/template-requests', data);
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}

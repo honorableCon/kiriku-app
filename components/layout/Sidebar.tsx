@@ -31,6 +31,7 @@ const navigation = [
     { name: "KYC & IDENTITY", href: "/dashboard/kyc", icon: ShieldCheck },
     { name: "API KEYS", href: "/dashboard/api-keys", icon: Key },
     { name: "EXTRACTIONS", href: "/dashboard/extractions", icon: FileText },
+    { name: "TEMPLATE_REQUESTS", href: "/dashboard/templates/requests", icon: FileText },
     { name: "ANALYTICS", href: "/dashboard/analytics", icon: BarChart3 },
     { name: "WEBHOOKS", href: "/dashboard/webhooks", icon: Webhook },
     { name: "BILLING", href: "/dashboard/billing", icon: CreditCard },

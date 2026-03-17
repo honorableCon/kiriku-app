@@ -268,3 +268,31 @@ export async function setAdminTemplateActive(slug: string, isActive: boolean): P
         throw new Error(getErrorMessage(error));
     }
 }
+
+export async function getAdminTemplateRequests(status?: string): Promise<import('@/types').TemplateRequest[]> {
+    try {
+        const params = status && status !== 'all' ? { status } : undefined;
+        const response = await api.get<import('@/types').TemplateRequest[]>('/template-requests/admin/all', { params });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function updateTemplateRequestStatus(id: string, data: { status: string; adminNotes?: string; createdTemplateId?: string }): Promise<import('@/types').TemplateRequest> {
+    try {
+        const response = await api.patch<import('@/types').TemplateRequest>(`/template-requests/admin/${id}/status`, data);
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function getTemplateRequestFileUrl(key: string): Promise<{ url: string }> {
+    try {
+        const response = await api.get<{ url: string }>(`/template-requests/admin/file/${encodeURIComponent(key)}`);
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}

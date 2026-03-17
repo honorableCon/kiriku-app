@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { FileText, Plus, Search, Edit, Trash2, Eye, Globe, Shield, Copy, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getTemplates, deleteTemplate } from "@/lib/resources";
@@ -85,12 +86,21 @@ export default function TemplatesPage() {
                     <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Modèles de Documents</h1>
                     <p className="text-foreground/60 mt-1">Configurez les modèles pour l'extraction de vos documents.</p>
                 </div>
-                <button 
-                    onClick={() => handleOpenModal("create")}
-                    className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center gap-2"
-                >
-                    <Plus size={18} /> Nouveau Modèle
-                </button>
+                <div className="flex gap-2">
+                    <Link
+                        href="/dashboard/templates/requests"
+                        className="tech-border bg-white/5 border-white/10 px-4 py-2 text-xs font-black text-foreground uppercase tracking-wider hover:bg-white/10 hover:border-white/20 transition-all font-mono flex items-center justify-center gap-2"
+                    >
+                        MES DEMANDES
+                    </Link>
+                    <button
+                        onClick={() => handleOpenModal("create")}
+                        className="tech-border bg-primary/20 border-primary/40 px-4 py-2 text-xs font-black text-primary uppercase tracking-wider hover:bg-primary/30 hover:border-primary/60 transition-all font-mono flex items-center justify-center gap-2"
+                    >
+                        <Plus size={16} />
+                        CREATE_CUSTOM
+                    </button>
+                </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
