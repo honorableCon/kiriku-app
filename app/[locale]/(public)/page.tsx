@@ -28,7 +28,7 @@ export default function LandingPage() {
             <section className="relative z-10 pt-32 pb-20 lg:pt-48 lg:pb-32 border-b border-border/50">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     <div className="flex flex-col lg:flex-row items-center gap-16">
-                        <motion.div 
+                        <motion.div
                             className="flex-1 text-left"
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -70,7 +70,7 @@ export default function LandingPage() {
                             </div>
                         </motion.div>
 
-                        <motion.div 
+                        <motion.div
                             className="flex-1 w-full max-w-lg lg:max-w-none"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -81,7 +81,7 @@ export default function LandingPage() {
                                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary" />
                                 <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-primary" />
                                 <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-primary" />
-                                
+
                                 <div className="bg-accent/5 p-6 space-y-6">
                                     <div className="flex items-center justify-between border-b border-border pb-4">
                                         <div className="flex gap-2">
@@ -151,7 +151,7 @@ export default function LandingPage() {
             </section>
 
             {/* Partners Section */}
-            <section className="py-12 border-b border-border bg-accent/5">
+            {/* <section className="py-12 border-b border-border bg-accent/5">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     <p className="text-center text-[10px] font-bold text-foreground/40 uppercase tracking-[0.3em] mb-8">
                         {t('partners.title')}
@@ -162,7 +162,7 @@ export default function LandingPage() {
                         ))}
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             {/* Features Grid */}
             <section className="py-32 relative z-10">
@@ -228,7 +228,7 @@ export default function LandingPage() {
                             {t('cta.buttons.primary')}
                         </Link>
                         <Link
-                            href="/contact"
+                            href="/pricing"
                             className="w-full sm:w-auto px-12 py-4 border border-border bg-black text-foreground font-bold text-sm tracking-widest uppercase hover:border-primary transition-all"
                         >
                             {t('cta.buttons.secondary')}

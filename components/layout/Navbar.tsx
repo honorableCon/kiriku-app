@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale } from 'next-intl';
 import { useSession, signOut } from "next-auth/react";
+import Image from "next/image";
 
 const navigation = [
     { name: "FEATURES", href: "/#features", label: "FEATURES" },
@@ -43,7 +44,7 @@ export default function Navbar() {
     if (pathname?.startsWith("/dashboard")) return null;
 
     return (
-        <header 
+        <header
             className={cn(
                 "fixed inset-x-0 top-0 z-50 transition-all duration-300",
                 scrolled ? "bg-black/90 backdrop-blur-md border-b border-primary/20 py-3" : "bg-transparent py-5"
@@ -52,9 +53,10 @@ export default function Navbar() {
             <nav className="flex items-center justify-between px-6 lg:px-8 max-w-7xl mx-auto" aria-label="Global">
                 <div className="flex lg:flex-1">
                     <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-3 group">
-                        <div className="w-10 h-10 tech-border bg-primary/10 border-primary/40 flex items-center justify-center group-hover:border-primary/60 group-hover:bg-primary/20 transition-all duration-300">
+                        {/* <div className="w-10 h-10 tech-border bg-primary/10 border-primary/40 flex items-center justify-center group-hover:border-primary/60 group-hover:bg-primary/20 transition-all duration-300">
                             <span className="text-primary font-black text-xl font-mono animate-pulse">K</span>
-                        </div>
+                        </div> */}
+                        <Image src="/logo.png" alt="Kiriku Logo" width={40} height={40} className="flex items-center justify-center transition-all" />
                         <div className="flex flex-col">
                             <span className="text-lg font-black tracking-wight text-white font-mono uppercase">Kiriku</span>
                             <span className="text-[8px] text-foreground/50 font-mono uppercase tracking-widest">EXTRACTION_PLATFORM</span>
@@ -73,9 +75,9 @@ export default function Navbar() {
                 </div>
                 <div className="hidden lg:flex lg:gap-x-8">
                     {navigation.map((item) => (
-                        <Link 
-                            key={item.name} 
-                            href={`/${currentLocale}${item.href}`} 
+                        <Link
+                            key={item.name}
+                            href={`/${currentLocale}${item.href}`}
                             className="text-[10px] font-black text-foreground/50 hover:text-primary transition-colors font-mono uppercase tracking-wider hover:border-b hover:border-primary/50 pb-1"
                         >
                             {item.name}

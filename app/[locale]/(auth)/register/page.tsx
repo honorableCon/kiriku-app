@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import Image from "next/image";
 
 export default function RegisterPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -94,9 +95,7 @@ export default function RegisterPage() {
             <div className="w-full max-w-md space-y-8 relative z-10">
                 <div className="text-center">
                     <Link href="/" className="inline-flex items-center gap-3 mb-8 group">
-                        <div className="w-12 h-12 tech-border bg-primary flex items-center justify-center group-hover:bg-primary/80 transition-all">
-                            <Terminal className="w-6 h-6 text-white" />
-                        </div>
+                        <Image src="/logo.png" alt="Kiriku Logo" width={50} height={50} className="flex items-center justify-center transition-all" />
                         <div className="text-left">
                             <span className="text-2xl font-bold tracking-tight text-foreground font-mono">KIRIKU</span>
                             <div className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">System_Reg</div>

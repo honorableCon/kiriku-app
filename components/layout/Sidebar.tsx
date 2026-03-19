@@ -24,6 +24,7 @@ import { signOut } from "next-auth/react";
 import { getCurrentUser } from "@/lib/resources";
 import type { User } from "@/types";
 import { useLocale } from "next-intl";
+import Image from "next/image";
 
 const navigation = [
     { name: "DASHBOARD", href: "/dashboard/overview", icon: LayoutDashboard },
@@ -78,9 +79,10 @@ export default function Sidebar() {
         >
             <div className="flex h-16 items-center justify-between px-6 border-b border-border bg-accent/10">
                 <Link href={`/${locale}`} className="flex items-center gap-3 overflow-hidden group">
-                    <div className="min-w-8 h-8 bg-primary/10 border border-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-black transition-all">
+                    {/* <div className="min-w-8 h-8 bg-primary/10 border border-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-black transition-all">
                         <span className="text-primary group-hover:text-black font-mono font-bold text-lg">K</span>
-                    </div>
+                    </div> */}
+                    <Image src="/logo.png" alt="Kiriku Logo" width={40} height={40} className="flex items-center justify-center transition-all" />
                     {!isCollapsed && (
                         <div className="flex flex-col">
                             <span className="text-lg font-bold tracking-widest text-foreground uppercase font-mono">KIRIKU</span>

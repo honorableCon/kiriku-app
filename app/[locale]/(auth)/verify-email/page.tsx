@@ -5,6 +5,7 @@ import { Terminal, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { verifyEmail } from "@/lib/resources";
+import Image from "next/image";
 
 export default function VerifyEmailPage() {
     const params = useSearchParams();
@@ -34,9 +35,7 @@ export default function VerifyEmailPage() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-black to-black opacity-50" />
             <div className="w-full max-w-md space-y-8 relative z-10 text-center">
                 <div className="inline-flex items-center gap-3 mx-auto">
-                    <div className="w-12 h-12 tech-border bg-primary flex items-center justify-center">
-                        <Terminal className="w-6 h-6 text-white" />
-                    </div>
+                    <Image src="/logo.png" alt="Kiriku Logo" width={50} height={50} className="flex items-center justify-center transition-all" />
                     <div className="text-left">
                         <span className="text-2xl font-bold tracking-tight text-foreground font-mono">KIRIKU</span>
                         <div className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">Email_Verification</div>
