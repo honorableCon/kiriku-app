@@ -113,6 +113,7 @@ export interface Extraction {
     referenceId: string;
     documentType: string;
     status: 'queued' | 'processing' | 'completed' | 'failed' | 'reviewed';
+    batchId?: string;
     provider?: string;
     creditsUsed: number;
     processingMs?: number;
