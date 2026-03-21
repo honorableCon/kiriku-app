@@ -169,6 +169,45 @@ export async function deleteExtraction(id: string): Promise<void> {
     }
 }
 
+export async function createBatchExtraction(
+    files: File[],
+    documentType: string,
+): Promise<{ batchId: string; status: string; totalDocuments: number }> {
+    try {
+        const formData = new FormData();
+        files.forEach((file) => formData.append('files', file));
+        formData.append('documentType', documentType);
+
+        const response = await api.post<{ batchId: string; status: string; totalDocuments: number }>('/extract/batch', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function getBatches(params?: {
+    limit?: number;
+    offset?: number;
+}): Promise<{ data: any[]; total: number }> {
+    try {
+        const response = await api.get<{ data: any[]; total: number }>('/batches', { params });
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
+export async function getBatchById(id: string): Promise<{ batch: any; extractions: any[] }> {
+    try {
+        const response = await api.get<{ batch: any; extractions: any[] }>(`/batches/${id}`);
+        return response.data;
+    } catch (error) {
+        throw new Error(getErrorMessage(error));
+    }
+}
+
 export async function submitFeedback(id: string, correctedData: Record<string, any>): Promise<Extraction> {
     try {
         const response = await api.post<Extraction>(`/extractions/${id}/feedback`, { correctedData });

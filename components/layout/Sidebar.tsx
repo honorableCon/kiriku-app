@@ -16,7 +16,8 @@ import {
     Activity,
     Book,
     ShieldCheck,
-    Play
+    Play,
+    Layers
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ const navigation = [
     { name: "KYC & IDENTITY", href: "/dashboard/kyc", icon: ShieldCheck },
     { name: "API KEYS", href: "/dashboard/api-keys", icon: Key },
     { name: "EXTRACTIONS", href: "/dashboard/extractions", icon: FileText },
+    { name: "BATCH", href: "/dashboard/batch", icon: Layers },
     { name: "TEMPLATE_REQUESTS", href: "/dashboard/templates/requests", icon: FileText },
     { name: "ANALYTICS", href: "/dashboard/analytics", icon: BarChart3 },
     { name: "WEBHOOKS", href: "/dashboard/webhooks", icon: Webhook },
