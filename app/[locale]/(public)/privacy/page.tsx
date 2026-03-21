@@ -12,7 +12,7 @@ export default function PrivacyPage() {
                 <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
             </div>
 
-            <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 lg:py-32">
+            <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 lg:py-32 lg:pt-12">
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
