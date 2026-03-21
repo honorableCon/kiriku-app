@@ -14,7 +14,8 @@ import {
     ExternalLink,
     Trash2,
     Database,
-    ArrowUpRight
+    ArrowUpRight,
+    Layers
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -149,6 +150,7 @@ export default function ExtractionsPage() {
                                 <th className="px-6 py-4">Doc_Type</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4">Confidence</th>
+                                <th className="px-6 py-4">Batch</th>
                                 <th className="px-6 py-4">Timestamp</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
@@ -212,6 +214,19 @@ export default function ExtractionsPage() {
                                                 {Math.round((ext.result?.globalConfidence || 0) * 100)}%
                                             </span>
                                         </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {ext.batchId ? (
+                                            <Link 
+                                                href={`/dashboard/batch/${ext.batchId}`}
+                                                className="group/batch inline-flex items-center gap-1.5 px-2 py-0.5 border border-primary/20 bg-primary/5 text-primary rounded hover:border-primary/50 transition-all"
+                                            >
+                                                <Layers size={10} className="text-primary/60 group-hover/batch:text-primary transition-colors" />
+                                                <span className="text-[9px] font-bold font-mono tracking-tight group-hover/batch:translate-x-0.5 transition-transform">{ext.batchId.split('_').pop()}</span>
+                                            </Link>
+                                        ) : (
+                                            <span className="text-[10px] text-foreground/20 font-mono">—</span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-[10px] text-foreground/40 font-mono">
                                         {new Date(ext.createdAt).toLocaleDateString()} <span className="opacity-50 mx-1">-</span> {new Date(ext.createdAt).toLocaleTimeString()}
