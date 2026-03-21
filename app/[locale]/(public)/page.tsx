@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MoveRight, ShieldCheck, Zap, Database, Server, Code, Terminal, Scan, Activity, Lock, Cpu } from "lucide-react";
+import { MoveRight, ShieldCheck, Zap, Database, Server, Code, Terminal, Scan, Activity, Lock, Cpu, Layers } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from 'next-intl';
 
@@ -177,12 +177,17 @@ export default function LandingPage() {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
                         {[
                             {
                                 icon: Database,
                                 title: t('features.models.title'),
                                 desc: t('features.models.description')
+                            },
+                            {
+                                icon: Layers,
+                                title: t('features.batch.title'),
+                                desc: t('features.batch.description')
                             },
                             {
                                 icon: ShieldCheck,

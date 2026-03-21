@@ -30,16 +30,16 @@ import Image from "next/image";
 const navigation = [
     { name: "DASHBOARD", href: "/dashboard/overview", icon: LayoutDashboard },
     { name: "PLAYGROUND OCR", href: "/dashboard/playground", icon: Play },
-    { name: "KYC & IDENTITY", href: "/dashboard/kyc", icon: ShieldCheck },
-    { name: "API KEYS", href: "/dashboard/api-keys", icon: Key },
     { name: "EXTRACTIONS", href: "/dashboard/extractions", icon: FileText },
-    { name: "BATCH", href: "/dashboard/batch", icon: Layers },
+    { name: "BATCH PROCESSING", href: "/dashboard/batch", icon: Layers },
     { name: "TEMPLATE_REQUESTS", href: "/dashboard/templates/requests", icon: FileText },
+    { name: "KYC & IDENTITY", href: "/dashboard/kyc", icon: ShieldCheck },
     { name: "ANALYTICS", href: "/dashboard/analytics", icon: BarChart3 },
     { name: "WEBHOOKS", href: "/dashboard/webhooks", icon: Webhook },
+    { name: "API KEYS", href: "/dashboard/api-keys", icon: Key },
     { name: "BILLING", href: "/dashboard/billing", icon: CreditCard },
-    { name: "DOCUMENTATION", href: "/docs", icon: Book },
     { name: "SYSTEM", href: "/dashboard/settings", icon: Settings },
+    { name: "DOCUMENTATION", href: "/docs", icon: Book },
 ];
 
 export default function Sidebar() {

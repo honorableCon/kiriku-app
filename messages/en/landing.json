@@ -48,6 +48,10 @@
     "sovereignty": {
       "title": "Total_Flexibility",
       "description": "Cloud or on-premise deployment, adaptable to your specific needs and compliant with regulations."
+    },
+    "batch": {
+      "title": "Batch_Processing",
+      "description": "Process up to 50 documents simultaneously with our high-performance, parallelized engine."
     }
   },
   "cta": {

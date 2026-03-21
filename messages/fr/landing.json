@@ -48,6 +48,10 @@
     "sovereignty": {
       "title": "Flexibilité_Totale",
       "description": "Solution cloud ou déployée localement, adaptable à vos besoins spécifiques et conformes aux réglementations."
+    },
+    "batch": {
+      "title": "Traitement_Par_Lots",
+      "description": "Traitez jusqu'à 50 documents simultanément avec notre moteur hautement performant et parallélisé."
     }
   },
   "cta": {
